@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <!-- アイコンの縁が白くなるのを防ぐ設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- アイコン背景をアプリの背景色に合わせる -->
+    <meta name="theme-color" content="#0f172a">
+    
     <title>漢字合体サバイバル</title>
 
     <!-- iPhone ホーム画面用アイコン -->
@@ -47,7 +53,7 @@
         
         <!-- バージョン表記 -->
         <div class="absolute top-14 left-6 z-50 text-[10px] text-slate-500 font-mono">
-            ver.1.7
+            ver.1.8
         </div>
 
         <!-- Screens -->
@@ -173,7 +179,7 @@
             // Stage 4: 難読・複雑（しんにょう・特殊な部首）
             stage4: [
                 {t:'軍',r:'辶',k:'運',d:['廴','彳','弓']},{t:'谷',r:'欠',k:'欲',d:['支','攵','心']},{t:'交',r:'阝',k:'郊',d:['辶','廴','彳']},{t:'取',r:'走',k:'趣',d:['足','身','車']},
-                {t:'正',r:'廴',k:'延',d:['門','彳','弓']},{t:'隹',r:'辶',k:'進',d:['廴','彳','弓']},{t:'冬',r:'糸',k:'終',d:['辶','彳','廴']},{t:'戸',r:'隹',k:'雇',d:['辶','木','火']},
+                {t:'正',r:'廴',k:'延',d:['門','彳','弓']},{t:'隹',r:'辶',k:'進',d:['廴','彳','弓']},{t:'冬',r:'糸',k:'終',d:['辶','彳','廴']},{t:'戸',r:'隹',k:'雇',d:['辶','木','水']},
                 {t:'心',r:'今',k:'念',d:['弓','几','力']},{t:'者',r:'言',k:'諸',d:['疒','阝','門']}
             ],
             // Stage 5: 究極（パーツが細かく、一瞬迷うハイレベル）
