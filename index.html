@@ -9,7 +9,7 @@
     <!-- アイコン背景をアプリの背景色に合わせる -->
     <meta name="theme-color" content="#0f172a">
     
-    <title>漢字合体サバイバル</title>
+    <title>漢字合体サバイバル２</title>
 
     <!-- iPhone ホーム画面用アイコン -->
     <link rel="apple-touch-icon" href="k5.png">
@@ -46,6 +46,15 @@
             background-color: rgba(15, 23, 42, 0.5);
             z-index: 10;
         }
+
+        /* ロゴのアニメーション（ふわふわ浮く感じ） */
+        .logo-float {
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body class="bg-slate-900">
@@ -53,12 +62,13 @@
         
         <!-- バージョン表記 -->
         <div class="absolute top-14 left-6 z-50 text-[10px] text-slate-500 font-mono">
-            ver.2.2
+            ver.2.4 (UI Upgrade)
         </div>
 
         <!-- Screens -->
-        <div id="title-screen" class="flex-grow flex flex-col items-center justify-center text-center p-8 fade-in">
-            <div class="absolute top-16 right-6">
+        <!-- タイトル画面：ロゴ画像とボタン画像を使用 -->
+        <div id="title-screen" class="flex-grow flex flex-col items-center justify-between text-center py-20 px-8 fade-in">
+            <div class="absolute top-16 right-6 z-50">
                 <button onclick="toggleMute()" class="p-3 bg-slate-800/90 rounded-full text-slate-400 border border-slate-700">
                     <svg id="title-volume-on" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.686-3.686a1 1 0 011.111-.238zm5.459 2.158a1 1 0 011.414 0 7.5 7.5 0 010 10.608 1 1 0 01-1.414-1.414 5.5 5.5 0 000-7.78 1 1 0 010-1.414zm-2.828 2.828a1 1 0 011.414 0 3.5 3.5 0 010 4.95 1 1 0 01-1.414-1.414 1.5 1.5 0 000-2.122 1 1 0 010-1.414z" />
@@ -68,10 +78,18 @@
                     </svg>
                 </button>
             </div>
-            <h1 class="text-6xl font-[900] text-transparent bg-clip-text bg-gradient-to-br from-emerald-400 to-blue-500 leading-tight mb-16 italic tracking-tighter">
-    漢字合体<br>サバイバル２
-</h1>
-            <button onclick="showInstructions()" class="w-full py-6 bg-slate-800 border border-slate-600 rounded-3xl text-2xl font-bold text-white shadow-xl active:scale-95 transition-all">遊び方をみる</button>
+
+            <!-- ロゴ画像エリア -->
+            <div class="flex-grow flex items-center justify-center w-full">
+                <img src="rogo.png" alt="漢字合体サバイバル２ ロゴ" class="w-full max-w-sm logo-float drop-shadow-[0_0_20px_rgba(52,211,153,0.3)]">
+            </div>
+
+            <!-- ボタン画像エリア -->
+            <div class="w-full max-w-xs mb-10">
+                <button onclick="showInstructions()" class="w-full active:scale-95 transition-all">
+                    <img src="botan.png" alt="遊び方をみる" class="w-full drop-shadow-lg">
+                </button>
+            </div>
         </div>
 
         <div id="instruction-screen" class="hidden flex-grow flex flex-col items-center justify-center p-8 fade-in text-center">
@@ -158,31 +176,25 @@
 
         const taunts = ["そんなのもわかんないの？w", "合体失敗！やり直し！", "パーツの見分けつかないの？", "本気出してこれ？w", "脳みそ動いてる？", "次は頑張ろうね(棒)", "漢字、苦手なんだねw", "ププッw どんまいw", "それ、合体できないよ？w", "お疲れ様でした〜(笑)"];
         
-        // t: 表示パーツ (右側など), r: 正解パーツ (へん等), k: 完成漢字, d: ダミー
         const gameData = {
-            // Stage 1: へん・つくり（左右の組み合わせがメイン）
             stage1: [
                 {t:'木',r:'亻',k:'休',d:['彳','土','走']},{t:'言',r:'亻',k:'信',d:['彳','走','心']},{t:'反',r:'木',k:'板',d:['扌','火','目']},{t:'吾',r:'言',k:'語',d:['亻','口','女']},
                 {t:'売',r:'言',k:'読',d:['亻','扌','彳']},{t:'旨',r:'扌',k:'指',d:['木','金','土']},{t:'舌',r:'言',k:'話',d:['口','目','日']},{t:'永',r:'氵',k:'泳',d:['冫','木','火']},{t:'青',r:'日',k:'晴',d:['广','宀','欠']},{t:'寺',r:'扌',k:'持',d:['疒','宀','广']}
             ],
-            // Stage 2: かんむり・あし（上下の組み合わせがメイン）
             stage2: [
                 {t:'女',r:'宀',k:'安',d:['艹','竹','雨']},{t:'合',r:'竹',k:'答',d:['氵','阝','辶']},{t:'相',r:'心',k:'想',d:['土','目','火']},{t:'木',r:'宀',k:'宋',d:['竹','穴','艹']},
                 {t:'元',r:'宀',k:'完',d:['艹','竹','穴']},{t:'立',r:'竹',k:'笠',d:['冫','雨','穴']},{t:'古',r:'艹',k:'苦',d:['竹','雨','宀']},{t:'龍',r:'衣',k:'襲',d:['艹','穴','走']},{t:'官',r:'竹',k:'管',d:['雨','冖','亠']},{t:'心',r:'艹',k:'芯',d:['竹','雨','穴']}
             ],
-            // Stage 3: かまえ・たれ（囲う・覆う構造がメイン）
             stage3: [
                 {t:'口',r:'門',k:'問',d:['疒','厂','广']},{t:'耳',r:'門',k:'聞',d:['囗','尸','戸']},{t:'王',r:'門',k:'閏',d:['囗','厂','广']},{t:'木',r:'囗',k:'困',d:['走','尸','戸']},
                 {t:'正',r:'疒',k:'症',d:['广','厂','尸']},{t:'占',r:'广',k:'店',d:['疒','厂','囗']},{t:'口',r:'囗',k:'回',d:['疒','广','厂']},{t:'矢',r:'疒',k:'疾',d:['广','尸','囗']},
                 {t:'日',r:'門',k:'間',d:['疒','厂','广']},{t:'木',r:'門',k:'閑',d:['疒','尸','戸']}
             ],
-            // Stage 4: 難読・複雑（しんにょう・特殊な部首）
             stage4: [
                 {t:'軍',r:'辶',k:'運',d:['廴','彳','弓']},{t:'谷',r:'欠',k:'欲',d:['支','攵','心']},{t:'交',r:'阝',k:'郊',d:['辶','廴','彳']},{t:'取',r:'走',k:'趣',d:['足','身','車']},
                 {t:'正',r:'廴',k:'延',d:['門','扌','弓']},{t:'隹',r:'辶',k:'進',d:['廴','彳','弓']},{t:'冬',r:'糸',k:'終',d:['辶','彳','廴']},{t:'戸',r:'隹',k:'雇',d:['辶','木','水']},
                 {t:'心',r:'今',k:'念',d:['弓','几','力']},{t:'者',r:'言',k:'諸',d:['疒','足','門']}
             ],
-            // Stage 5: 究極（パーツが細かく、一瞬迷うハイレベル）
             stage5: [
                 {t:'妻',r:'冫',k:'凄',d:['氵','广','欠']},{t:'非',r:'戸', k:'扉', d:['門', '疒', '阝']},{t:'疑',r:'扌',k:'擬',d:['木','金','土']},{t:'止',r:'𠆢',k:'企',d:['扌','目','火']},
                 {t:'曼',r:'氵',k:'漫',d:['阝','火','土']},{t:'召',r:'走',k:'超',d:['足','身','辶']},{t:'軍',r:'光',k:'輝',d:['火','疒','車']},{t:'卑',r:'石',k:'碑',d:['山','門','金']},
@@ -321,4 +333,3 @@
     </script>
 </body>
 </html>
-　
