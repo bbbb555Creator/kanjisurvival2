@@ -40,17 +40,16 @@
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* 問題の「つくり」を表示する枠 */
+        /* つくりの表示枠：サイズを拡張 */
         #tsukuri-box {
             background-image: url('kaisi2.png');
             background-size: 100% 100%;
             background-repeat: no-repeat;
             background-color: transparent;
             border: none;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.7));
         }
 
-        /* 選択肢のボタン */
         .radical-btn {
             background-image: url('kaisi3.png');
             background-size: 100% 100%;
@@ -59,14 +58,13 @@
             border: none;
             backdrop-filter: none;
             color: #ffffff;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); /* 文字を見やすく */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
             transition: transform 0.1s;
         }
 
         .radical-btn:active { transform: scale(0.92); filter: brightness(0.85); }
         
-        /* ガイドカードの装飾 */
         .guide-card {
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
             border: 1px solid rgba(52, 211, 153, 0.3);
@@ -90,7 +88,7 @@
     <div id="game-container" class="w-full relative overflow-hidden">
         
         <div class="absolute top-14 left-6 z-50 text-[10px] text-slate-500 font-mono">
-            ver.2.8 (UI Enhanced)
+            ver.2.9 (Box Resize)
         </div>
 
         <!-- Title Screen -->
@@ -124,21 +122,21 @@
                         <div class="bg-emerald-500/20 rounded-2xl p-3 text-2xl">🧩</div>
                         <div>
                             <h3 class="text-emerald-400 font-bold text-lg mb-1">パーツの確認</h3>
-                            <p class="text-slate-300 text-sm leading-relaxed">画面中央に表示される漢字の「一部」をじっくり見てね。</p>
+                            <p class="text-slate-300 text-sm leading-relaxed">中央の大きな枠に表示されるパーツをじっくり見てね。</p>
                         </div>
                     </div>
                     <div class="guide-card rounded-3xl p-5 flex items-start space-x-4">
                         <div class="bg-blue-500/20 rounded-2xl p-3 text-2xl">⚡</div>
                         <div>
                             <h3 class="text-blue-400 font-bold text-lg mb-1">もう片方を選択</h3>
-                            <p class="text-slate-300 text-sm leading-relaxed">下の選択肢から、合体して正しい漢字になるパーツを選ぼう。</p>
+                            <p class="text-slate-300 text-sm leading-relaxed">下の選択肢から、合体して漢字が完成するパーツを選ぼう。</p>
                         </div>
                     </div>
                     <div class="guide-card rounded-3xl p-5 flex items-start space-x-4">
                         <div class="bg-rose-500/20 rounded-2xl p-3 text-2xl">🔥</div>
                         <div>
                             <h3 class="text-rose-400 font-bold text-lg mb-1">サバイバル</h3>
-                            <p class="text-slate-300 text-sm leading-relaxed">全50問。一度でも間違えたら即終了のシビアな戦いだよ。</p>
+                            <p class="text-slate-300 text-sm leading-relaxed">全50問。一度でもミスすれば即終了！集中力を切らさないで。</p>
                         </div>
                     </div>
                 </div>
@@ -174,8 +172,10 @@
 
             <div class="text-center mb-8">
                 <div class="text-slate-300 text-lg font-bold">第 <span id="q-num" class="text-5xl font-black text-white px-2">1</span> / 50 問</div>
-                <div id="tsukuri-box" class="w-48 h-48 mx-auto mt-8 flex items-center justify-center relative">
-                    <span id="tsukuri-display" class="kanji-font text-[8rem] text-white"></span>
+                <!-- ボックスサイズを w-56 h-56 に拡大 -->
+                <div id="tsukuri-box" class="w-56 h-56 mx-auto mt-6 flex items-center justify-center relative">
+                    <!-- 文字サイズも微調整 -->
+                    <span id="tsukuri-display" class="kanji-font text-[9rem] text-white"></span>
                 </div>
             </div>
             <div id="choices-grid" class="grid grid-cols-2 gap-4 mt-auto mb-8"></div>
@@ -248,7 +248,6 @@
             g.innerHTML = ''; 
             cs.forEach(r => { 
                 const btn = document.createElement('button'); 
-                // Tailwindの背景色クラスを排除し、CSSで定義した .radical-btn を適用
                 btn.className = "radical-btn kanji-font py-6 text-7xl flex items-center justify-center"; 
                 btn.textContent = r; 
                 btn.onclick = () => check(r); 
