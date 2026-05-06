@@ -40,12 +40,31 @@
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .radical-btn {
-            background-color: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        /* 問題の「つくり」を表示する枠 */
+        #tsukuri-box {
+            background-image: url('kaisi.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-color: transparent;
+            border: none;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6));
         }
-        .radical-btn:active { transform: scale(0.92); background-color: rgba(51, 65, 85, 0.9); }
+
+        /* 選択肢のボタン */
+        .radical-btn {
+            background-image: url('kaisi.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-color: transparent;
+            border: none;
+            backdrop-filter: none;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); /* 文字を見やすく */
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+            transition: transform 0.1s;
+        }
+
+        .radical-btn:active { transform: scale(0.92); filter: brightness(0.85); }
         
         /* ガイドカードの装飾 */
         .guide-card {
@@ -62,7 +81,6 @@
             50% { transform: translateY(-10px); }
         }
 
-        /* カスタムスクロールバー（必要に応じて） */
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(52, 211, 153, 0.3); border-radius: 10px; }
@@ -93,7 +111,7 @@
             </div>
         </div>
 
-        <!-- Instruction Screen (改修部分) -->
+        <!-- Instruction Screen -->
         <div id="instruction-screen" class="hidden flex-grow flex flex-col items-center justify-center p-6 fade-in">
             <div class="w-full max-w-md flex flex-col h-full py-10">
                 <div class="text-center mb-8">
@@ -102,7 +120,6 @@
                 </div>
 
                 <div class="flex-grow space-y-4 overflow-y-auto custom-scroll pr-1">
-                    <!-- Rule 1 -->
                     <div class="guide-card rounded-3xl p-5 flex items-start space-x-4">
                         <div class="bg-emerald-500/20 rounded-2xl p-3 text-2xl">🧩</div>
                         <div>
@@ -110,7 +127,6 @@
                             <p class="text-slate-300 text-sm leading-relaxed">画面中央に表示される漢字の「一部」をじっくり見てね。</p>
                         </div>
                     </div>
-                    <!-- Rule 2 -->
                     <div class="guide-card rounded-3xl p-5 flex items-start space-x-4">
                         <div class="bg-blue-500/20 rounded-2xl p-3 text-2xl">⚡</div>
                         <div>
@@ -118,7 +134,6 @@
                             <p class="text-slate-300 text-sm leading-relaxed">下の選択肢から、合体して正しい漢字になるパーツを選ぼう。</p>
                         </div>
                     </div>
-                    <!-- Rule 3 -->
                     <div class="guide-card rounded-3xl p-5 flex items-start space-x-4">
                         <div class="bg-rose-500/20 rounded-2xl p-3 text-2xl">🔥</div>
                         <div>
@@ -159,7 +174,7 @@
 
             <div class="text-center mb-8">
                 <div class="text-slate-300 text-lg font-bold">第 <span id="q-num" class="text-5xl font-black text-white px-2">1</span> / 50 問</div>
-                <div id="tsukuri-box" class="w-48 h-48 mx-auto mt-8 bg-slate-800/80 backdrop-blur-sm border-4 border-slate-700 rounded-[3.5rem] flex items-center justify-center shadow-2xl relative">
+                <div id="tsukuri-box" class="w-48 h-48 mx-auto mt-8 flex items-center justify-center relative">
                     <span id="tsukuri-display" class="kanji-font text-[8rem] text-white"></span>
                 </div>
             </div>
@@ -190,7 +205,6 @@
     <audio id="sfx-wrong" preload="auto"><source src="batu.mp3" type="audio/mpeg"></audio>
 
     <script>
-        // ロジック設定
         let currentBgm = null, isMuted = false, currentIndex = 0, masterList = [];
         const STAGE_CONFIG = [
             { id: 1, threshold: 10, name: "初級：へん・つくり", color: "bg-blue-600", bgm: "bgm-stage1", msg: "次は「かんむり」が登場。" },
@@ -216,7 +230,32 @@
         function playSfx(id) { if (isMuted) return; const s = document.getElementById(id); if (s) { s.currentTime = 0; s.volume = 0.5; s.play().catch(e=>{}); } }
         function toggleMute() { isMuted = !isMuted; document.querySelectorAll('[id$="volume-on"]').forEach(i => i.classList.toggle('hidden', isMuted)); document.querySelectorAll('[id$="volume-off"]').forEach(i => i.classList.toggle('hidden', !isMuted)); if (currentBgm) isMuted ? currentBgm.pause() : currentBgm.play().catch(e=>{}); }
         function startGame() { document.getElementById('instruction-screen').classList.add('hidden'); document.getElementById('game-screen').classList.remove('hidden'); masterList = [...shuffle([...gameData.stage1]),...shuffle([...gameData.stage2]),...shuffle([...gameData.stage3]),...shuffle([...gameData.stage4]),...shuffle([...gameData.stage5])]; currentIndex = 0; initQuiz(); }
-        function initQuiz() { const q = masterList[currentIndex]; const s = STAGE_CONFIG.find(c => currentIndex < c.threshold) || STAGE_CONFIG[4]; playBgm(s.bgm); document.getElementById('tsukuri-display').textContent = q.t; document.getElementById('q-num').textContent = currentIndex+1; document.getElementById('stage-count').textContent = s.id; document.getElementById('progress-bar').style.width = `${(currentIndex/50)*100}%`; const b = document.getElementById('level-badge'); b.textContent = s.name; b.className = `px-4 py-1.5 ${s.color} text-white text-xs rounded-full font-bold shadow-lg`; const cs = shuffle([q.r, ...q.d]); const g = document.getElementById('choices-grid'); g.innerHTML = ''; cs.forEach(r => { const btn = document.createElement('button'); btn.className = "radical-btn kanji-font py-6 text-7xl rounded-3xl text-white shadow-xl flex items-center justify-center"; btn.textContent = r; btn.onclick = () => check(r); g.appendChild(btn); }); }
+        
+        function initQuiz() { 
+            const q = masterList[currentIndex]; 
+            const s = STAGE_CONFIG.find(c => currentIndex < c.threshold) || STAGE_CONFIG[4]; 
+            playBgm(s.bgm); 
+            document.getElementById('tsukuri-display').textContent = q.t; 
+            document.getElementById('q-num').textContent = currentIndex+1; 
+            document.getElementById('stage-count').textContent = s.id; 
+            document.getElementById('progress-bar').style.width = `${(currentIndex/50)*100}%`; 
+            const b = document.getElementById('level-badge'); 
+            b.textContent = s.name; 
+            b.className = `px-4 py-1.5 ${s.color} text-white text-xs rounded-full font-bold shadow-lg`; 
+            
+            const cs = shuffle([q.r, ...q.d]); 
+            const g = document.getElementById('choices-grid'); 
+            g.innerHTML = ''; 
+            cs.forEach(r => { 
+                const btn = document.createElement('button'); 
+                // Tailwindの背景色クラスを排除し、CSSで定義した .radical-btn を適用
+                btn.className = "radical-btn kanji-font py-6 text-7xl flex items-center justify-center"; 
+                btn.textContent = r; 
+                btn.onclick = () => check(r); 
+                g.appendChild(btn); 
+            }); 
+        }
+
         function check(r) { const q = masterList[currentIndex]; const isC = (r === q.r); const ov = document.getElementById('overlay'), m = document.getElementById('overlay-message'), ic = document.getElementById('overlay-icon'), bt = document.getElementById('action-btn'), kb = document.getElementById('result-kanji-container'); ov.classList.remove('hidden'); if (isC) { playSfx('sfx-correct'); currentIndex++; const se = STAGE_CONFIG.findIndex(s => currentIndex === s.threshold); if (se !== -1 && currentIndex < 50) { ic.textContent = "🏆"; m.innerHTML = "STAGE CLEAR!<br>" + STAGE_CONFIG[se].msg; kb.classList.add('hidden'); bt.textContent = "次のステージへ"; bt.className = "w-full py-6 bg-blue-600 text-white rounded-3xl font-black text-2xl"; bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; } else if (currentIndex >= 50) { playBgm('bgm-ending'); ic.textContent = "👑"; m.innerHTML = "全問制覇！おめでとう！"; kb.classList.remove('hidden'); document.getElementById('result-kanji').textContent = q.k; bt.textContent = "タイトルへ"; bt.className = "w-full py-6 bg-emerald-600 text-white rounded-3xl font-black text-2xl"; bt.onclick = resetToTitle; } else { ic.textContent = "🌸"; m.innerHTML = "正解！"; kb.classList.remove('hidden'); document.getElementById('result-kanji').textContent = q.k; bt.textContent = "次へ"; bt.className = "w-full py-6 bg-emerald-600 text-white rounded-3xl font-black text-2xl"; bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; } } else { if (currentBgm) currentBgm.pause(); playSfx('sfx-wrong'); ic.textContent = "💩"; m.innerHTML = `<span class="text-rose-500 font-black">${taunts[Math.floor(Math.random()*taunts.length)]}</span><br><br>記録: ${currentIndex} 問`; kb.classList.add('hidden'); bt.textContent = "再挑戦する"; bt.className = "w-full py-6 bg-slate-700 text-white rounded-3xl font-black text-2xl"; bt.onclick = resetToTitle; } }
     </script>
 </body>
