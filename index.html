@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <!-- アイコンの縁が白くなるのを防ぐ設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- アイコン背景をアプリの背景色に合わせる -->
     <meta name="theme-color" content="#0f172a">
     
     <title>漢字合体サバイバル２</title>
-
-    <!-- iPhone ホーム画面用アイコン -->
     <link rel="apple-touch-icon" href="k5.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,8 +17,7 @@
         body { 
             font-family: 'Kiwi Maru', serif; 
             background-color: #0f172a; 
-            /* 同階層のbg.pngを背景に設定。画像の上に暗い色の層を重ねて文字を読みやすくする */
-            background-image: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)), url('bg.png');
+            background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), url('bg.png');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -37,30 +32,28 @@
         #game-container {
             min-height: 100vh;
             min-height: -webkit-fill-available;
-            padding-top: env(safe-area-inset-top);
+            display: flex;
+            flex-direction: column;
         }
 
         .kanji-font { font-family: 'Sawarabi Mincho', 'Noto Serif JP', serif; }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* パーツボタンのデザイン調整（少し透けさせる） */
         .radical-btn {
             background-color: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .radical-btn:active { transform: scale(0.92); background-color: rgba(51, 65, 85, 0.9); }
         
-        .progress-marker {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background-color: rgba(15, 23, 42, 0.5);
-            z-index: 10;
+        /* ガイドカードの装飾 */
+        .guide-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(52, 211, 153, 0.05);
         }
 
-        /* ロゴのアニメーション */
         .logo-float {
             animation: float 4s ease-in-out infinite;
         }
@@ -68,36 +61,31 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
+
+        /* カスタムスクロールバー（必要に応じて） */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(52, 211, 153, 0.3); border-radius: 10px; }
     </style>
 </head>
 <body>
-    <div id="game-container" class="w-full flex flex-col relative overflow-hidden">
+    <div id="game-container" class="w-full relative overflow-hidden">
         
-        <!-- バージョン表記 -->
         <div class="absolute top-14 left-6 z-50 text-[10px] text-slate-500 font-mono">
-            ver.2.6 (Background Fix)
+            ver.2.7 (UI Enhanced)
         </div>
 
-        <!-- Screens -->
+        <!-- Title Screen -->
         <div id="title-screen" class="flex-grow flex flex-col items-center justify-between text-center py-20 px-8 fade-in">
             <div class="absolute top-16 right-6 z-50">
                 <button onclick="toggleMute()" class="p-3 bg-slate-800/90 rounded-full text-slate-400 border border-slate-700">
-                    <svg id="title-volume-on" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.686-3.686a1 1 0 011.111-.238zm5.459 2.158a1 1 0 011.414 0 7.5 7.5 0 010 10.608 1 1 0 01-1.414-1.414 5.5 5.5 0 000-7.78 1 1 0 010-1.414zm-2.828 2.828a1 1 0 011.414 0 3.5 3.5 0 010 4.95(省略可能)" />
-                    </svg>
-                    <!-- スピーカーアイコンのパスは元のままで維持 -->
-                    <svg id="title-volume-off" class="h-6 w-6 hidden" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M9.383 3.076A1 1 0 0110 4v12(省略可能)" />
-                    </svg>
+                    <svg id="title-volume-on" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.686-3.686a1 1 0 011.111-.238zm5.459 2.158a1 1 0 011.414 0 7.5 7.5 0 010 10.608 1 1 0 01-1.414-1.414 5.5 5.5 0 000-7.78 1 1 0 010-1.414zm-2.828 2.828a1 1 0 011.414 0 3.5 3.5 0 010 4.95" /></svg>
+                    <svg id="title-volume-off" class="h-6 w-6 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12" /></svg>
                 </button>
             </div>
-
-            <!-- ロゴ画像エリア -->
             <div class="flex-grow flex items-center justify-center w-full">
                 <img src="rogo.png" alt="漢字合体サバイバル２ ロゴ" class="w-full max-w-sm logo-float drop-shadow-[0_0_20px_rgba(52,211,153,0.3)]">
             </div>
-
-            <!-- ボタン画像エリア -->
             <div class="w-full max-w-xs mb-10">
                 <button onclick="showInstructions()" class="w-full active:scale-95 transition-all">
                     <img src="botan2.PNG" alt="遊び方をみる" class="w-full drop-shadow-lg">
@@ -105,17 +93,53 @@
             </div>
         </div>
 
-        <div id="instruction-screen" class="hidden flex-grow flex flex-col items-center justify-center p-8 fade-in text-center">
-            <h2 class="text-3xl font-black text-emerald-400 mb-10">遊び方ガイド</h2>
-            <div class="bg-slate-800/80 backdrop-blur-md rounded-3xl p-8 mb-12 w-full border border-slate-700 space-y-6 text-left shadow-inner">
-                <p class="text-xl text-slate-200">① 画面中央の「パーツ」を見る</p>
-                <p class="text-xl text-slate-200">② 合体して漢字になる「もう片方」を選ぶ</p>
-                <p class="text-xl text-slate-200">③ 50問連続正解で完全クリア！</p>
-                <p class="text-rose-400 font-bold mt-6 text-center text-lg">※ミスした瞬間にゲーム終了</p>
+        <!-- Instruction Screen (改修部分) -->
+        <div id="instruction-screen" class="hidden flex-grow flex flex-col items-center justify-center p-6 fade-in">
+            <div class="w-full max-w-md flex flex-col h-full py-10">
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-emerald-300 to-emerald-500 drop-shadow-sm">遊び方ガイド</h2>
+                    <div class="h-1 w-20 bg-emerald-500 mx-auto mt-2 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.8)]"></div>
+                </div>
+
+                <div class="flex-grow space-y-4 overflow-y-auto custom-scroll pr-1">
+                    <!-- Rule 1 -->
+                    <div class="guide-card rounded-3xl p-5 flex items-start space-x-4">
+                        <div class="bg-emerald-500/20 rounded-2xl p-3 text-2xl">🧩</div>
+                        <div>
+                            <h3 class="text-emerald-400 font-bold text-lg mb-1">パーツの確認</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed">画面中央に表示される漢字の「一部」をじっくり見てね。</p>
+                        </div>
+                    </div>
+                    <!-- Rule 2 -->
+                    <div class="guide-card rounded-3xl p-5 flex items-start space-x-4">
+                        <div class="bg-blue-500/20 rounded-2xl p-3 text-2xl">⚡</div>
+                        <div>
+                            <h3 class="text-blue-400 font-bold text-lg mb-1">もう片方を選択</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed">下の選択肢から、合体して正しい漢字になるパーツを選ぼう。</p>
+                        </div>
+                    </div>
+                    <!-- Rule 3 -->
+                    <div class="guide-card rounded-3xl p-5 flex items-start space-x-4">
+                        <div class="bg-rose-500/20 rounded-2xl p-3 text-2xl">🔥</div>
+                        <div>
+                            <h3 class="text-rose-400 font-bold text-lg mb-1">サバイバル</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed">全50問。一度でも間違えたら即終了のシビアな戦いだよ。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-4 border-t border-slate-800">
+                    <button onclick="startGame()" class="w-full py-5 bg-gradient-to-r from-emerald-600 via-emerald-500 to-blue-600 rounded-2xl text-xl font-black text-white shadow-[0_10px_20px_rgba(16,185,129,0.3)] active:scale-95 transition-transform">
+                        挑戦を開始する
+                    </button>
+                    <button onclick="resetToTitle()" class="w-full mt-4 py-3 text-slate-400 font-bold text-sm hover:text-white transition-colors">
+                        タイトルに戻る
+                    </button>
+                </div>
             </div>
-            <button onclick="startGame()" class="w-full py-6 bg-gradient-to-r from-emerald-600 to-blue-600 rounded-3xl text-2xl font-black text-white shadow-2xl active:scale-95 transition-transform">挑戦を開始する</button>
         </div>
 
+        <!-- Game Screen -->
         <div id="game-screen" class="hidden flex-grow flex flex-col p-6 fade-in">
             <div class="flex justify-between items-end mb-4 pt-8">
                 <div id="level-badge" class="px-4 py-1.5 text-white text-xs rounded-full font-bold shadow-lg"></div>
@@ -124,20 +148,12 @@
 
             <div class="relative w-full bg-slate-800/60 h-3 rounded-full overflow-hidden shadow-inner border border-slate-700">
                 <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
-                <div class="progress-marker" style="left: 20%;"></div>
-                <div class="progress-marker" style="left: 40%;"></div>
-                <div class="progress-marker" style="left: 60%;"></div>
-                <div class="progress-marker" style="left: 80%;"></div>
             </div>
 
             <div class="flex justify-end mt-2 mb-2">
                 <button onclick="toggleMute()" class="p-2 text-slate-400 hover:text-white transition-colors">
-                    <svg id="game-volume-on" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.686-3.686a1 1 0 011.111-.238zm5.459 2.158a1 1 0 011.414 0 7.5 7.5 0 010 10.608 1 1 0 01-1.414-1.414 5.5 5.5 0 000-7.78 1 1 0 010-1.414zm-2.828 2.828a1 1 0 011.414 0 3.5 3.5 0 010 4.95" />
-                    </svg>
-                    <svg id="game-volume-off" class="h-6 w-6 hidden" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M9.383 3.076A1 1 0 0110 4v12" />
-                    </svg>
+                    <svg id="game-volume-on" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.686-3.686a1 1 0 011.111-.238zm5.459 2.158a1 1 0 011.414 0 7.5 7.5 0 010 10.608 1 1 0 01-1.414-1.414 5.5 5.5 0 000-7.78 1 1 0 010-1.414zm-2.828 2.828a1 1 0 011.414 0 3.5 3.5 0 010 4.95" /></svg>
+                    <svg id="game-volume-off" class="h-6 w-6 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12" /></svg>
                 </button>
             </div>
 
@@ -174,12 +190,8 @@
     <audio id="sfx-wrong" preload="auto"><source src="batu.mp3" type="audio/mpeg"></audio>
 
     <script>
-        // ロジック部分は元のままで変更なし
-        let currentBgm = null; 
-        let isMuted = false; 
-        let currentIndex = 0; 
-        let masterList = [];
-
+        // ロジック設定
+        let currentBgm = null, isMuted = false, currentIndex = 0, masterList = [];
         const STAGE_CONFIG = [
             { id: 1, threshold: 10, name: "初級：へん・つくり", color: "bg-blue-600", bgm: "bgm-stage1", msg: "次は「かんむり」が登場。" },
             { id: 2, threshold: 20, name: "中級：かんむり・あし", color: "bg-emerald-600", bgm: "bgm-stage2", msg: "次は「かまえ」が来るぞ。" },
@@ -187,163 +199,25 @@
             { id: 4, threshold: 40, name: "超級：難読・複雑", color: "bg-orange-600", bgm: "bgm-stage4", msg: "いよいよ最終試練だ。" },
             { id: 5, threshold: 50, name: "究極：漢字マスター", color: "bg-rose-600", bgm: "bgm-stage5", msg: "" }
         ];
-
         const taunts = ["そんなのもわかんないの？w", "合体失敗！やり直し！", "パーツの見分けつかないの？", "本気出してこれ？w", "脳みそ動いてる？", "次は頑張ろうね(棒)", "漢字、苦手なんだねw", "ププッw どんまいw", "それ、合体できないよ？w", "お疲れ様でした〜(笑)"];
         
         const gameData = {
-            stage1: [
-                {t:'木',r:'亻',k:'休',d:['彳','土','走']},{t:'言',r:'亻',k:'信',d:['彳','走','心']},{t:'反',r:'木',k:'板',d:['扌','火','目']},{t:'吾',r:'言',k:'語',d:['亻','口','女']},
-                {t:'売',r:'言',k:'読',d:['亻','扌','彳']},{t:'旨',r:'扌',k:'指',d:['木','金','土']},{t:'舌',r:'言',k:'話',d:['口','目','日']},{t:'永',r:'氵',k:'泳',d:['冫','木','火']},{t:'青',r:'日',k:'晴',d:['广','宀','欠']},{t:'寺',r:'扌',k:'持',d:['疒','宀','广']}
-            ],
-            stage2: [
-                {t:'女',r:'宀',k:'安',d:['艹','竹','雨']},{t:'合',r:'竹',k:'答',d:['氵','阝','辶']},{t:'相',r:'心',k:'想',d:['土','目','火']},{t:'木',r:'宀',k:'宋',d:['竹','穴','艹']},
-                {t:'元',r:'宀',k:'完',d:['艹','竹','穴']},{t:'立',r:'竹',k:'笠',d:['冫','雨','穴']},{t:'古',r:'艹',k:'苦',d:['竹','雨','宀']},{t:'龍',r:'衣',k:'襲',d:['艹','穴','走']},{t:'官',r:'竹',k:'管',d:['雨','冖','亠']},{t:'心',r:'艹',k:'芯',d:['竹','雨','穴']}
-            ],
-            stage3: [
-                {t:'口',r:'門',k:'問',d:['疒','厂','广']},{t:'耳',r:'門',k:'聞',d:['囗','尸','戸']},{t:'王',r:'門',k:'閏',d:['囗','厂','广']},{t:'木',r:'囗',k:'困',d:['走','尸','戸']},
-                {t:'正',r:'疒',k:'症',d:['广','厂','尸']},{t:'占',r:'广',k:'店',d:['疒','厂','囗']},{t:'口',r:'囗',k:'回',d:['疒','广','厂']},{t:'矢',r:'疒',k:'疾',d:['广','尸','囗']},
-                {t:'日',r:'門',k:'間',d:['疒','厂','广']},{t:'木',r:'門',k:'閑',d:['疒','尸','戸']}
-            ],
-            stage4: [
-                {t:'軍',r:'辶',k:'運',d:['廴','彳','弓']},{t:'谷',r:'欠',k:'欲',d:['支','攵','心']},{t:'交',r:'阝',k:'郊',d:['辶','廴','彳']},{t:'取',r:'走',k:'趣',d:['足','身','車']},
-                {t:'正',r:'廴',k:'延',d:['門','扌','弓']},{t:'隹',r:'辶',k:'進',d:['廴','彳','弓']},{t:'冬',r:'糸',k:'終',d:['辶','彳','廴']},{t:'戸',r:'隹',k:'雇',d:['辶','木','水']},
-                {t:'心',r:'今',k:'念',d:['弓','几','力']},{t:'者',r:'言',k:'諸',d:['疒','足','門']}
-            ],
-            stage5: [
-                {t:'妻',r:'冫',k:'凄',d:['氵','广','欠']},{t:'非',r:'戸', k:'扉', d:['門', '疒', '阝']},{t:'疑',r:'扌',k:'擬',d:['木','金','土']},{t:'止',r:'𠆢',k:'企',d:['扌','目','火']},
-                {t:'曼',r:'氵',k:'漫',d:['阝','火','土']},{t:'召',r:'走',k:'超',d:['足','身','辶']},{t:'軍',r:'光',k:'輝',d:['火','疒','車']},{t:'卑',r:'石',k:'碑',d:['山','門','金']},
-                {t:'鬼',r:'未',k:'魅',d:['土','末','言']},{t:'革',r:'便',k:'鞭',d:['疒','廴','弓']}
-            ]
+            stage1: [{t:'木',r:'亻',k:'休',d:['彳','土','走']},{t:'言',r:'亻',k:'信',d:['彳','走','心']},{t:'反',r:'木',k:'板',d:['扌','火','目']},{t:'吾',r:'言',k:'語',d:['亻','口','女']},{t:'売',r:'言',k:'読',d:['亻','扌','彳']},{t:'旨',r:'扌',k:'指',d:['木','金','土']},{t:'舌',r:'言',k:'話',d:['口','目','日']},{t:'永',r:'氵',k:'泳',d:['冫','木','火']},{t:'青',r:'日',k:'晴',d:['广','宀','欠']},{t:'寺',r:'扌',k:'持',d:['疒','宀','广']}],
+            stage2: [{t:'女',r:'宀',k:'安',d:['艹','竹','雨']},{t:'合',r:'竹',k:'答',d:['氵','阝','辶']},{t:'相',r:'心',k:'想',d:['土','目','火']},{t:'木',r:'宀',k:'宋',d:['竹','穴','艹']},{t:'元',r:'宀',k:'完',d:['艹','竹','穴']},{t:'立',r:'竹',k:'笠',d:['冫','雨','穴']},{t:'古',r:'艹',k:'苦',d:['竹','雨','宀']},{t:'龍',r:'衣',k:'襲',d:['艹','穴','走']},{t:'官',r:'竹',k:'管',d:['雨','冖','亠']},{t:'心',r:'艹',k:'芯',d:['竹','雨','穴']}],
+            stage3: [{t:'口',r:'門',k:'問',d:['疒','厂','广']},{t:'耳',r:'門',k:'聞',d:['囗','尸','戸']},{t:'王',r:'門',k:'閏',d:['囗','厂','广']},{t:'木',r:'囗',k:'困',d:['走','尸','戸']},{t:'正',r:'疒',k:'症',d:['广','厂','尸']},{t:'占',r:'广',k:'店',d:['疒','厂','囗']},{t:'口',r:'囗',k:'回',d:['疒','广','厂']},{t:'矢',r:'疒',k:'疾',d:['广','尸','囗']},{t:'日',r:'門',k:'間',d:['疒','厂','广']},{t:'木',r:'門',k:'閑',d:['疒','尸','戸']}],
+            stage4: [{t:'軍',r:'辶',k:'運',d:['廴','彳','弓']},{t:'谷',r:'欠',k:'欲',d:['支','攵','心']},{t:'交',r:'阝',k:'郊',d:['辶','廴','彳']},{t:'取',r:'走',k:'趣',d:['足','身','車']},{t:'正',r:'廴',k:'延',d:['門','扌','弓']},{t:'隹',r:'辶',k:'進',d:['廴','彳','弓']},{t:'冬',r:'糸',k:'終',d:['辶','彳','廴']},{t:'戸',r:'隹',k:'雇',d:['辶','木','水']},{t:'心',r:'今',k:'念',d:['弓','几','力']},{t:'者',r:'言',k:'諸',d:['疒','足','門']}],
+            stage5: [{t:'妻',r:'冫',k:'凄',d:['氵','广','欠']},{t:'非',r:'戸', k:'扉', d:['門', '疒', '阝']},{t:'疑',r:'扌',k:'擬',d:['木','金','土']},{t:'止',r:'𠆢',k:'企',d:['扌','目','火']},{t:'曼',r:'氵',k:'漫',d:['阝','火','土']},{t:'召',r:'走',k:'超',d:['足','身','辶']},{t:'軍',r:'光',k:'輝',d:['火','疒','車']},{t:'卑',r:'石',k:'碑',d:['山','門','金']},{t:'鬼',r:'未',k:'魅',d:['土','末','言']},{t:'革',r:'便',k:'鞭',d:['疒','廴','弓']}]
         };
 
         function shuffle(a) { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
-
-        function showInstructions() { 
-            document.getElementById('title-screen').classList.add('hidden'); 
-            document.getElementById('instruction-screen').classList.remove('hidden'); 
-        }
-
-        function playBgm(id) { 
-            const n = document.getElementById(id); 
-            if (!n || currentBgm === n) return; 
-            if (currentBgm) { currentBgm.pause(); currentBgm.currentTime = 0; } 
-            currentBgm = n; 
-            currentBgm.volume = 0.3; 
-            if (!isMuted) currentBgm.play().catch(e=>{}); 
-        }
-
-        function playSfx(id) { 
-            if (isMuted) return; 
-            const s = document.getElementById(id); 
-            if (s) { s.currentTime = 0; s.volume = 0.5; s.play().catch(e=>{}); } 
-        }
-        
-        function toggleMute() { 
-            isMuted = !isMuted; 
-            const onIcons = document.querySelectorAll('[id$="volume-on"]');
-            const offIcons = document.querySelectorAll('[id$="volume-off"]');
-            onIcons.forEach(icon => icon.classList.toggle('hidden', isMuted));
-            offIcons.forEach(icon => icon.classList.toggle('hidden', !isMuted));
-            if (currentBgm) isMuted ? currentBgm.pause() : currentBgm.play().catch(e=>{}); 
-        }
-        
-        function resetToTitle() {
-            if (currentBgm) { currentBgm.pause(); currentBgm.currentTime = 0; currentBgm = null; }
-            currentIndex = 0;
-            document.getElementById('overlay').classList.add('hidden');
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('instruction-screen').classList.add('hidden');
-            document.getElementById('title-screen').classList.remove('hidden');
-        }
-
-        function startGame() { 
-            document.getElementById('instruction-screen').classList.add('hidden'); 
-            document.getElementById('game-screen').classList.remove('hidden'); 
-            masterList = [
-                ...shuffle([...gameData.stage1]),
-                ...shuffle([...gameData.stage2]),
-                ...shuffle([...gameData.stage3]),
-                ...shuffle([...gameData.stage4]),
-                ...shuffle([...gameData.stage5])
-            ]; 
-            currentIndex = 0; 
-            initQuiz(); 
-        }
-
-        function initQuiz() { 
-            const q = masterList[currentIndex]; 
-            const s = STAGE_CONFIG.find(c => currentIndex < c.threshold) || STAGE_CONFIG[4]; 
-            playBgm(s.bgm); 
-            document.getElementById('tsukuri-display').textContent = q.t; 
-            document.getElementById('q-num').textContent = currentIndex+1; 
-            document.getElementById('stage-count').textContent = s.id; 
-            document.getElementById('progress-bar').style.width = `${(currentIndex/50)*100}%`; 
-            const b = document.getElementById('level-badge'); 
-            b.textContent = s.name; 
-            b.className = `px-4 py-1.5 ${s.color} text-white text-xs rounded-full font-bold shadow-lg`; 
-            
-            const cs = shuffle([q.r, ...q.d]); 
-            const g = document.getElementById('choices-grid'); 
-            g.innerHTML = ''; 
-            cs.forEach(r => { 
-                const btn = document.createElement('button'); 
-                btn.className = "radical-btn kanji-font py-6 text-7xl border-2 border-slate-700 rounded-3xl text-white shadow-xl flex items-center justify-center"; 
-                btn.textContent = r; 
-                btn.onclick = () => check(r); 
-                g.appendChild(btn); 
-            }); 
-        }
-
-        function check(r) { 
-            const q = masterList[currentIndex]; 
-            const isC = (r === q.r); 
-            const ov = document.getElementById('overlay'); 
-            const m = document.getElementById('overlay-message'); 
-            const ic = document.getElementById('overlay-icon'); 
-            const bt = document.getElementById('action-btn'); 
-            const kb = document.getElementById('result-kanji-container'); 
-            ov.classList.remove('hidden'); 
-            
-            if (isC) { 
-                playSfx('sfx-correct'); 
-                currentIndex++; 
-                const se = STAGE_CONFIG.findIndex(s => currentIndex === s.threshold); 
-                if (se !== -1 && currentIndex < 50) { 
-                    ic.textContent = "🏆"; 
-                    m.innerHTML = "STAGE CLEAR!<br>" + STAGE_CONFIG[se].msg; 
-                    kb.classList.add('hidden'); 
-                    bt.textContent = "次のステージへ"; 
-                    bt.className = "w-full py-6 bg-blue-600 text-white rounded-3xl font-black text-2xl shadow-lg"; 
-                    bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; 
-                } else if (currentIndex >= 50) { 
-                    playBgm('bgm-ending'); 
-                    ic.textContent = "👑"; 
-                    m.innerHTML = "全問制覇！おめでとう！"; 
-                    kb.classList.remove('hidden'); 
-                    document.getElementById('result-kanji').textContent = q.k; 
-                    bt.textContent = "タイトルへ"; 
-                    bt.className = "w-full py-6 bg-emerald-600 text-white rounded-3xl font-black text-2xl shadow-lg"; 
-                    bt.onclick = resetToTitle; 
-                } else { 
-                    ic.textContent = "🌸"; 
-                    m.innerHTML = "正解！"; 
-                    kb.classList.remove('hidden'); 
-                    document.getElementById('result-kanji').textContent = q.k; 
-                    bt.textContent = "次へ"; 
-                    bt.className = "w-full py-6 bg-emerald-600 text-white rounded-3xl font-black text-2xl shadow-lg"; 
-                    bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; 
-                } 
-            } else { 
-                if (currentBgm) currentBgm.pause(); 
-                playSfx('sfx-wrong'); 
-                ic.textContent = "💩"; 
-                m.innerHTML = `<span class="text-rose-500 font-black">${taunts[Math.floor(Math.random()*taunts.length)]}</span><br><br>記録: ${currentIndex} 問`; 
-                kb.classList.add('hidden'); 
-                bt.textContent = "再挑戦する"; 
-                bt.className = "w-full py-6 bg-slate-700 text-white rounded-3xl font-black text-2xl shadow-lg"; 
-                bt.onclick = resetToTitle; 
-            } 
-        }
+        function showInstructions() { document.getElementById('title-screen').classList.add('hidden'); document.getElementById('instruction-screen').classList.remove('hidden'); }
+        function resetToTitle() { if (currentBgm) { currentBgm.pause(); currentBgm.currentTime = 0; currentBgm = null; } currentIndex = 0; document.querySelectorAll('#game-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('title-screen').classList.remove('hidden'); }
+        function playBgm(id) { const n = document.getElementById(id); if (!n || currentBgm === n) return; if (currentBgm) { currentBgm.pause(); currentBgm.currentTime = 0; } currentBgm = n; currentBgm.volume = 0.3; if (!isMuted) currentBgm.play().catch(e=>{}); }
+        function playSfx(id) { if (isMuted) return; const s = document.getElementById(id); if (s) { s.currentTime = 0; s.volume = 0.5; s.play().catch(e=>{}); } }
+        function toggleMute() { isMuted = !isMuted; document.querySelectorAll('[id$="volume-on"]').forEach(i => i.classList.toggle('hidden', isMuted)); document.querySelectorAll('[id$="volume-off"]').forEach(i => i.classList.toggle('hidden', !isMuted)); if (currentBgm) isMuted ? currentBgm.pause() : currentBgm.play().catch(e=>{}); }
+        function startGame() { document.getElementById('instruction-screen').classList.add('hidden'); document.getElementById('game-screen').classList.remove('hidden'); masterList = [...shuffle([...gameData.stage1]),...shuffle([...gameData.stage2]),...shuffle([...gameData.stage3]),...shuffle([...gameData.stage4]),...shuffle([...gameData.stage5])]; currentIndex = 0; initQuiz(); }
+        function initQuiz() { const q = masterList[currentIndex]; const s = STAGE_CONFIG.find(c => currentIndex < c.threshold) || STAGE_CONFIG[4]; playBgm(s.bgm); document.getElementById('tsukuri-display').textContent = q.t; document.getElementById('q-num').textContent = currentIndex+1; document.getElementById('stage-count').textContent = s.id; document.getElementById('progress-bar').style.width = `${(currentIndex/50)*100}%`; const b = document.getElementById('level-badge'); b.textContent = s.name; b.className = `px-4 py-1.5 ${s.color} text-white text-xs rounded-full font-bold shadow-lg`; const cs = shuffle([q.r, ...q.d]); const g = document.getElementById('choices-grid'); g.innerHTML = ''; cs.forEach(r => { const btn = document.createElement('button'); btn.className = "radical-btn kanji-font py-6 text-7xl rounded-3xl text-white shadow-xl flex items-center justify-center"; btn.textContent = r; btn.onclick = () => check(r); g.appendChild(btn); }); }
+        function check(r) { const q = masterList[currentIndex]; const isC = (r === q.r); const ov = document.getElementById('overlay'), m = document.getElementById('overlay-message'), ic = document.getElementById('overlay-icon'), bt = document.getElementById('action-btn'), kb = document.getElementById('result-kanji-container'); ov.classList.remove('hidden'); if (isC) { playSfx('sfx-correct'); currentIndex++; const se = STAGE_CONFIG.findIndex(s => currentIndex === s.threshold); if (se !== -1 && currentIndex < 50) { ic.textContent = "🏆"; m.innerHTML = "STAGE CLEAR!<br>" + STAGE_CONFIG[se].msg; kb.classList.add('hidden'); bt.textContent = "次のステージへ"; bt.className = "w-full py-6 bg-blue-600 text-white rounded-3xl font-black text-2xl"; bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; } else if (currentIndex >= 50) { playBgm('bgm-ending'); ic.textContent = "👑"; m.innerHTML = "全問制覇！おめでとう！"; kb.classList.remove('hidden'); document.getElementById('result-kanji').textContent = q.k; bt.textContent = "タイトルへ"; bt.className = "w-full py-6 bg-emerald-600 text-white rounded-3xl font-black text-2xl"; bt.onclick = resetToTitle; } else { ic.textContent = "🌸"; m.innerHTML = "正解！"; kb.classList.remove('hidden'); document.getElementById('result-kanji').textContent = q.k; bt.textContent = "次へ"; bt.className = "w-full py-6 bg-emerald-600 text-white rounded-3xl font-black text-2xl"; bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; } } else { if (currentBgm) currentBgm.pause(); playSfx('sfx-wrong'); ic.textContent = "💩"; m.innerHTML = `<span class="text-rose-500 font-black">${taunts[Math.floor(Math.random()*taunts.length)]}</span><br><br>記録: ${currentIndex} 問`; kb.classList.add('hidden'); bt.textContent = "再挑戦する"; bt.className = "w-full py-6 bg-slate-700 text-white rounded-3xl font-black text-2xl"; bt.onclick = resetToTitle; } }
     </script>
 </body>
 </html>
