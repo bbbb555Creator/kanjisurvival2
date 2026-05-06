@@ -33,4 +33,4 @@
 *   **開発者**: bun
 
 ---
-© 2026 bun. All Rights Reserved.
+© 2026 bun. All Rights 　Reserved.
