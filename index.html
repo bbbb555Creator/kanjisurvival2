@@ -40,7 +40,6 @@
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* つくりの表示枠：サイズを拡張 */
         #tsukuri-box {
             background-image: url('kaisi2.png');
             background-size: 100% 100%;
@@ -88,10 +87,9 @@
     <div id="game-container" class="w-full relative overflow-hidden">
         
         <div class="absolute top-14 left-6 z-50 text-[10px] text-slate-500 font-mono">
-            ver.2.9 (Box Resize)
+            ver.2.9.1 (Install Guide)
         </div>
 
-        <!-- Title Screen -->
         <div id="title-screen" class="flex-grow flex flex-col items-center justify-between text-center py-20 px-8 fade-in">
             <div class="absolute top-16 right-6 z-50">
                 <button onclick="toggleMute()" class="p-3 bg-slate-800/90 rounded-full text-slate-400 border border-slate-700">
@@ -102,14 +100,17 @@
             <div class="flex-grow flex items-center justify-center w-full">
                 <img src="rogo.png" alt="漢字合体サバイバル２ ロゴ" class="w-full max-w-sm logo-float drop-shadow-[0_0_20px_rgba(52,211,153,0.3)]">
             </div>
-            <div class="w-full max-w-xs mb-10">
+            <div class="w-full max-w-xs space-y-4 mb-10">
                 <button onclick="showInstructions()" class="w-full active:scale-95 transition-all">
                     <img src="botan2.PNG" alt="遊び方をみる" class="w-full drop-shadow-lg">
+                </button>
+                <button onclick="showPWAInstallGuide()" class="w-full py-4 bg-slate-800/80 border border-slate-600 rounded-2xl text-slate-200 font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <span>ホーム画面に追加する</span>
                 </button>
             </div>
         </div>
 
-        <!-- Instruction Screen -->
         <div id="instruction-screen" class="hidden flex-grow flex flex-col items-center justify-center p-6 fade-in">
             <div class="w-full max-w-md flex flex-col h-full py-10">
                 <div class="text-center mb-8">
@@ -152,7 +153,6 @@
             </div>
         </div>
 
-        <!-- Game Screen -->
         <div id="game-screen" class="hidden flex-grow flex flex-col p-6 fade-in">
             <div class="flex justify-between items-end mb-4 pt-8">
                 <div id="level-badge" class="px-4 py-1.5 text-white text-xs rounded-full font-bold shadow-lg"></div>
@@ -172,16 +172,13 @@
 
             <div class="text-center mb-8">
                 <div class="text-slate-300 text-lg font-bold">第 <span id="q-num" class="text-5xl font-black text-white px-2">1</span> / 50 問</div>
-                <!-- ボックスサイズを w-56 h-56 に拡大 -->
                 <div id="tsukuri-box" class="w-64 h-64 mx-auto mt-6 flex items-center justify-center relative">
-                    <!-- 文字サイズも微調整 -->
                     <span id="tsukuri-display" class="kanji-font text-[9rem] text-white"></span>
                 </div>
             </div>
             <div id="choices-grid" class="grid grid-cols-2 gap-4 mt-auto mb-8"></div>
         </div>
 
-        <!-- Overlay -->
         <div id="overlay" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-slate-950/98 p-8 backdrop-blur-md text-center">
             <div class="w-full fade-in">
                 <div id="overlay-icon" class="text-8xl mb-8"></div>
@@ -194,7 +191,6 @@
         </div>
     </div>
 
-    <!-- AUDIO -->
     <audio id="bgm-stage1" loop preload="auto"><source src="1.mp3" type="audio/mpeg"></audio>
     <audio id="bgm-stage2" loop preload="auto"><source src="2.mp3" type="audio/mpeg"></audio>
     <audio id="bgm-stage3" loop preload="auto"><source src="3.mp3" type="audio/mpeg"></audio>
@@ -224,7 +220,29 @@
         };
 
         function shuffle(a) { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+        
         function showInstructions() { document.getElementById('title-screen').classList.add('hidden'); document.getElementById('instruction-screen').classList.remove('hidden'); }
+        
+        function showPWAInstallGuide() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const ov = document.getElementById('overlay');
+            const m = document.getElementById('overlay-message');
+            const ic = document.getElementById('overlay-icon');
+            const bt = document.getElementById('action-btn');
+            const kb = document.getElementById('result-kanji-container');
+            ov.classList.remove('hidden');
+            kb.classList.add('hidden');
+            ic.textContent = "📲";
+            if (isIOS) {
+                m.innerHTML = "iPhone/iPadの方は<br><span class='text-emerald-400 font-black'>「共有ボタン」</span>を押して<br><span class='text-emerald-400 font-black'>「ホーム画面に追加」</span>を<br>選んでね！";
+            } else {
+                m.innerHTML = "ブラウザのメニューから<br><span class='text-emerald-400 font-black'>「インストール」</span><br>または<br><span class='text-emerald-400 font-black'>「ホーム画面に追加」</span>を<br>選んでね！";
+            }
+            bt.textContent = "わかった！";
+            bt.className = "w-full py-6 bg-slate-700 text-white rounded-3xl font-black text-2xl";
+            bt.onclick = () => ov.classList.add('hidden');
+        }
+
         function resetToTitle() { if (currentBgm) { currentBgm.pause(); currentBgm.currentTime = 0; currentBgm = null; } currentIndex = 0; document.querySelectorAll('#game-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('title-screen').classList.remove('hidden'); }
         function playBgm(id) { const n = document.getElementById(id); if (!n || currentBgm === n) return; if (currentBgm) { currentBgm.pause(); currentBgm.currentTime = 0; } currentBgm = n; currentBgm.volume = 0.3; if (!isMuted) currentBgm.play().catch(e=>{}); }
         function playSfx(id) { if (isMuted) return; const s = document.getElementById(id); if (s) { s.currentTime = 0; s.volume = 0.5; s.play().catch(e=>{}); } }
