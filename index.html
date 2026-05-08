@@ -7,7 +7,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
     
-    <title>対義語サバイバル - 全国ランキング版</title>
+    <title>漢字合体サバイバル２</title>
+    <link rel="apple-touch-icon" href="k5.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -16,406 +17,222 @@
         body { 
             font-family: 'Kiwi Maru', serif; 
             background-color: #0f172a; 
+            background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), url('bg.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: #f8fafc; 
             touch-action: manipulation; 
             user-select: none; 
             -webkit-tap-highlight-color: transparent;
             margin: 0;
             padding: 0;
+            height: 100dvh;
+            overflow: hidden;
+            /* iPhoneのノッチとホームバーを考慮したパディング */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
 
         #game-container {
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
+            height: 100%; /* bodyのpaddingを除いた100% */
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
+        .kanji-font { font-family: 'Sawarabi Mincho', 'Noto Serif JP', serif; }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        #word-box {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
-            border: 4px solid #34d399;
-            box-shadow: 0 0 30px rgba(52, 211, 153, 0.3);
-            border-radius: 2rem;
+        #tsukuri-box {
+            background-image: url('kaisi2.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+            aspect-ratio: 1 / 1;
+            max-height: 22vh; /* ノッチ分を考慮して少しだけ小さめに調整 */
+            margin: 0 auto;
         }
 
-        .choice-btn {
-            background: rgba(30, 41, 59, 0.7);
-            border: 2px solid rgba(52, 211, 153, 0.2);
+        .radical-btn {
+            background-image: url('kaisi3.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
             color: #ffffff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            transition: all 0.1s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .choice-btn:active { transform: scale(0.95); background: #34d399; color: #0f172a; }
+        .radical-btn:active { transform: scale(0.92); filter: brightness(0.85); }
         
-        .feedback-pop {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 100;
-            animation: feedbackAnim 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67) forwards;
+        .guide-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border: 1px solid rgba(52, 211, 153, 0.3);
         }
 
-        @keyframes feedbackAnim {
-            0% { opacity: 0; transform: translate(-50%, -30%) scale(0.5); }
-            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-            80% { opacity: 1; transform: translate(-50%, -60%) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -80%) scale(0.8); }
-        }
+        .logo-float { animation: float 4s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-        .rank-row {
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            transition: background 0.3s;
-        }
-        .rank-row:last-child { border-bottom: none; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(52, 211, 153, 0.3); border-radius: 10px; }
     </style>
 </head>
 <body>
-    <div id="game-container" class="w-full relative overflow-hidden">
+    <div id="game-container" class="w-full relative">
         
-        <script>
-            const GAS_URL = "https://script.google.com/macros/s/AKfycbyFbiDDP-u2nUyE1eDMTdKJ48cdMUwyxzaTAHbc1DKA5wrXSrAlEtN-s79-SJ9vIa_v2g/exec"; 
-        </script>
-
-        <div id="fixed-mute-btn" class="absolute top-14 right-6 z-50">
-            <button onclick="toggleMute()" class="p-3 bg-slate-800/90 rounded-full text-slate-400 border border-slate-700 shadow-lg active:scale-95 transition-all">
-                <svg class="volume-on h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.686-3.686a1 1 0 011.111-.238zm5.459 2.158a1 1 0 011.414 0 7.5 7.5 0 010 10.608 1 1 0 01-1.414-1.414 5.5 5.5 0 000-7.78 1 1 0 010-1.414zm-2.828 2.828a1 1 0 011.414 0 3.5 3.5 0 010 4.95" /></svg>
-                <svg class="volume-off h-6 w-6 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12" /></svg>
-            </button>
+        <!-- Version Tag - 位置を少し調整 -->
+        <div class="absolute top-2 left-4 z-50 text-[8px] text-slate-500 font-mono">
+            ver.2.9.2 (Safe Area Optimized)
         </div>
 
-        <div id="title-screen" class="flex-grow flex flex-col items-center justify-center text-center py-20 px-8 fade-in">
-            <div class="text-6xl font-black text-emerald-400 mb-2 drop-shadow-[0_0_20px_rgba(52,211,153,0.5)]">対義語</div>
-            <div class="text-4xl font-black text-white tracking-widest mb-12">サバイバル</div>
-            
-            <div class="w-full max-w-xs space-y-4">
-                <button onclick="showInstructions()" class="w-full py-5 bg-emerald-600 hover:bg-emerald-500 rounded-2xl text-white font-black text-xl shadow-lg active:scale-95 transition-all">
-                    遊び方を見る
+        <!-- Title Screen -->
+        <div id="title-screen" class="flex-grow flex flex-col items-center justify-between text-center py-6 px-8 fade-in">
+            <div class="w-full flex justify-end">
+                <button onclick="toggleMute()" class="p-3 bg-slate-800/90 rounded-full text-slate-400 border border-slate-700">
+                    <svg id="title-volume-on" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.686-3.686a1 1 0 011.111-.238zm5.459 2.158a1 1 0 011.414 0 7.5 7.5 0 010 10.608 1 1 0 01-1.414-1.414 5.5 5.5 0 000-7.78 1 1 0 010-1.414zm-2.828 2.828a1 1 0 011.414 0 3.5 3.5 0 010 4.95" /></svg>
+                    <svg id="title-volume-off" class="h-6 w-6 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12" /></svg>
+                </button>
+            </div>
+            <div class="flex-grow flex items-center justify-center w-full">
+                <img src="rogo.png" alt="ロゴ" class="w-full max-w-[260px] logo-float drop-shadow-[0_0_20px_rgba(52,211,153,0.3)]">
+            </div>
+            <div class="w-full max-w-xs space-y-3 mb-6">
+                <button onclick="showInstructions()" class="w-full active:scale-95 transition-all">
+                    <img src="botan2.PNG" alt="遊び方" class="w-full drop-shadow-lg">
+                </button>
+                <button onclick="showPWAInstallGuide()" class="w-full py-3 bg-slate-800/80 border border-slate-600 rounded-2xl text-slate-200 font-bold text-sm flex items-center justify-center space-x-2">
+                    <span>アプリとしてダウンロード</span>
                 </button>
             </div>
         </div>
 
-        <div id="instruction-screen" class="hidden flex-grow flex flex-col items-center justify-center p-6 fade-in">
-            <h2 class="text-4xl font-black text-emerald-400 mb-8">遊び方</h2>
-            <div class="bg-slate-800/50 rounded-3xl p-6 border border-slate-700 text-slate-300 space-y-4 mb-10 w-full max-w-sm">
-                <p>・全60問。1問ミスで終了！</p>
-                <p>・速く答えるほどスコアUP！</p>
-                <p>・目指せ全国ランキング1位！</p>
-            </div>
-            <button onclick="showNicknameInput()" class="w-full max-w-xs py-5 bg-emerald-600 rounded-2xl text-white font-black text-xl shadow-lg active:scale-95">
-                次へ進む
-            </button>
-        </div>
-
-        <div id="nickname-screen" class="hidden flex-grow flex flex-col items-center justify-center p-8 fade-in">
-            <h2 class="text-3xl font-black text-white mb-8 italic">Who are you?</h2>
-            <input type="text" id="player-name" maxlength="10" placeholder="ニックネームを入力" 
-                class="w-full max-w-xs py-5 px-6 bg-slate-800 border-2 border-emerald-500 rounded-2xl text-white text-center text-2xl mb-8 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-2xl">
-            <button onclick="startGame()" class="w-full max-w-xs py-5 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-2xl text-white font-black text-2xl shadow-xl active:scale-95 transition-all">
-                挑戦を開始する
-            </button>
-        </div>
-
-        <div id="game-screen" class="hidden flex-grow flex flex-col p-6 fade-in relative">
-            <div id="feedback-layer"></div>
-            <div class="flex justify-between items-center mb-4 pt-10">
-                <div id="level-badge" class="px-4 py-1.5 text-white text-xs rounded-full font-bold shadow-lg"></div>
-                <div class="text-right">
-                    <div class="text-[10px] text-slate-400 uppercase font-bold">Total Score</div>
-                    <div id="total-score" class="text-2xl font-black text-yellow-400 leading-none">0</div>
+        <!-- Instruction Screen -->
+        <div id="instruction-screen" class="hidden flex-grow flex flex-col items-center justify-center p-4 fade-in overflow-hidden">
+            <div class="w-full max-w-md flex flex-col h-full py-2">
+                <div class="text-center mb-4">
+                    <h2 class="text-2xl font-black text-emerald-400">遊び方ガイド</h2>
                 </div>
-            </div>
-            <div class="relative w-full bg-slate-800/60 h-3 rounded-full overflow-hidden border border-slate-700">
-                <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
-            </div>
-            <div class="text-center my-6 flex-grow flex flex-col justify-center">
-                <div class="text-slate-400 text-sm font-bold tracking-widest uppercase">Question <span id="q-num" class="text-white text-xl">1</span> / 60</div>
-                <div id="word-box" class="w-full py-12 px-4 mx-auto mt-6 flex flex-col items-center justify-center relative">
-                    <div id="question-word" class="text-5xl md:text-6xl font-black text-white drop-shadow-lg">---</div>
-                </div>
-            </div>
-            <div id="choices-grid" class="grid grid-cols-1 gap-4 mt-auto mb-8"></div>
-        </div>
-
-        <div id="overlay" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-slate-950/98 p-6 backdrop-blur-xl text-center overflow-y-auto">
-            <div id="result-content" class="w-full max-w-sm fade-in flex flex-col items-center py-10">
-                <div id="overlay-icon" class="text-7xl mb-4"></div>
-                <div id="overlay-message" class="text-2xl font-bold mb-4 text-slate-200 leading-tight"></div>
-                
-                <div id="review-box" class="hidden w-full p-6 mb-6 bg-rose-950/30 border border-rose-500/50 rounded-3xl text-left">
-                    <div class="text-rose-400 text-[10px] font-bold uppercase mb-1">正解の確認</div>
-                    <div class="flex items-center justify-between">
-                        <div id="rev-q" class="text-2xl font-black text-white">---</div>
-                        <div class="text-rose-400 mx-2">⇔</div>
-                        <div id="rev-a" class="text-2xl font-black text-emerald-400 underline">---</div>
+                <div class="flex-grow space-y-3 overflow-y-auto custom-scroll pr-1">
+                    <div class="guide-card rounded-2xl p-4 flex items-start space-x-3">
+                        <div class="text-xl">🧩</div>
+                        <div><p class="text-slate-300 text-sm leading-snug">中央のパーツをじっくり見てね。</p></div>
+                    </div>
+                    <div class="guide-card rounded-2xl p-4 flex items-start space-x-3">
+                        <div class="text-xl">⚡</div>
+                        <div><p class="text-slate-300 text-sm leading-snug">4つの選択肢から、合体するパーツを選ぼう。</p></div>
+                    </div>
+                    <div class="guide-card rounded-2xl p-4 flex items-start space-x-3">
+                        <div class="text-xl">🔥</div>
+                        <div><p class="text-slate-300 text-sm leading-snug">全50問。一度でもミスすれば即終了！</p></div>
                     </div>
                 </div>
-
-                <div id="score-report" class="w-full mb-8 p-6 bg-slate-900/50 rounded-3xl border border-slate-800">
-                    <div class="text-slate-400 text-xs uppercase mb-1">Final Score</div>
-                    <div id="final-score" class="text-5xl font-black text-yellow-400 mb-1">0</div>
-                    <div id="ranking-status" class="text-emerald-500 text-xs font-bold animate-pulse">スコア送信中...</div>
+                <div class="mt-4">
+                    <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-emerald-600 to-blue-600 rounded-xl text-lg font-black text-white shadow-lg active:scale-95">挑戦を開始する</button>
+                    <button onclick="resetToTitle()" class="w-full mt-2 text-slate-400 text-xs font-bold">タイトルに戻る</button>
                 </div>
+            </div>
+        </div>
 
-                <div class="w-full mb-8">
-                    <h3 class="text-sm font-black text-slate-400 mb-4 tracking-[0.3em] uppercase flex items-center justify-center">
-                        <span class="h-px w-8 bg-slate-800 mr-2"></span>
-                        National Top 10
-                        <span class="h-px w-8 bg-slate-800 ml-2"></span>
-                    </h3>
-                    <div id="ranking-list" class="bg-slate-900/30 rounded-2xl border border-slate-800/50 overflow-hidden text-left">
-                        </div>
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden flex-grow flex flex-col p-4 fade-in">
+            <div class="flex justify-between items-center mb-2">
+                <div id="level-badge" class="px-3 py-1 text-white text-[10px] rounded-full font-bold shadow-md"></div>
+                <div class="text-[10px] text-slate-300 font-bold text-right leading-none">STAGE<br><span id="stage-count" class="text-emerald-400 text-2xl font-black">1</span></div>
+            </div>
+
+            <div class="w-full bg-slate-800/60 h-2 rounded-full overflow-hidden border border-slate-700 mb-2">
+                <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+
+            <div class="text-center flex-grow flex flex-col justify-around py-1">
+                <div>
+                    <div class="text-slate-300 text-sm font-bold">第 <span id="q-num" class="text-3xl font-black text-white">1</span> / 50 問</div>
+                    <div id="tsukuri-box" class="w-44 h-44 mx-auto mt-1 flex items-center justify-center relative">
+                        <span id="tsukuri-display" class="kanji-font text-7xl text-white"></span>
+                    </div>
                 </div>
+                
+                <div id="choices-grid" class="grid grid-cols-2 gap-3 w-full max-w-sm mx-auto">
+                    <!-- ボタン -->
+                </div>
+            </div>
 
-                <button id="action-btn" onclick="startGame()" class="w-full py-6 bg-emerald-600 rounded-3xl font-black text-2xl shadow-xl active:scale-95 transition-all text-white">もう一度挑戦</button>
-                <button onclick="location.reload()" class="mt-4 w-full py-3 text-slate-500 font-bold text-sm">タイトルへ戻る</button>
+            <div class="flex justify-center mt-1">
+                <button onclick="toggleMute()" class="p-2 text-slate-500"><svg id="game-volume-on" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.686-3.686a1 1 0 011.111-.238zm5.459 2.158a1 1 0 011.414 0 7.5 7.5 0 010 10.608 1 1 0 01-1.414-1.414 5.5 5.5 0 000-7.78 1 1 0 010-1.414zm-2.828 2.828a1 1 0 011.414 0 3.5 3.5 0 010 4.95" /></svg><svg id="game-volume-off" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12" /></svg></button>
+            </div>
+        </div>
+
+        <!-- Overlay -->
+        <div id="overlay" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-slate-950/98 p-6 backdrop-blur-md text-center">
+            <div class="w-full fade-in">
+                <div id="overlay-icon" class="text-7xl mb-4"></div>
+                <div id="overlay-message" class="text-xl font-bold mb-6 text-slate-200"></div>
+                <div id="result-kanji-container" class="hidden mb-6">
+                    <div id="result-kanji" class="kanji-font text-7xl text-white bg-slate-900/80 w-32 h-32 mx-auto flex items-center justify-center rounded-3xl border border-slate-700"></div>
+                </div>
+                <button id="action-btn" class="w-full max-w-xs py-4 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-transform mx-auto"></button>
             </div>
         </div>
     </div>
 
+    <!-- Audio (中身は省略せずそのまま使用してください) -->
     <audio id="bgm-stage1" loop preload="auto"><source src="1.mp3" type="audio/mpeg"></audio>
     <audio id="bgm-stage2" loop preload="auto"><source src="2.mp3" type="audio/mpeg"></audio>
     <audio id="bgm-stage3" loop preload="auto"><source src="3.mp3" type="audio/mpeg"></audio>
     <audio id="bgm-stage4" loop preload="auto"><source src="4.mp3" type="audio/mpeg"></audio>
+    <audio id="bgm-stage5" loop preload="auto"><source src="5.mp3" type="audio/mpeg"></audio>
     <audio id="bgm-ending" loop preload="auto"><source src="end.mp3" type="audio/mpeg"></audio>
     <audio id="sfx-correct" preload="auto"><source src="maru.mp3" type="audio/mpeg"></audio>
     <audio id="sfx-wrong" preload="auto"><source src="batu.mp3" type="audio/mpeg"></audio>
 
     <script>
-        // データの定義（短縮表示していますが、元の全データが入っている前提です）
-        const DATA = {
-            elementary: [{q:'表',a:'裏',d:['外','横','奥']},{q:'右',a:'左',d:['上','下','後']},{q:'入口',a:'出口',d:['窓口','北口','改札']},{q:'長い',a:'短い',d:['広い','狭い','高い']},{q:'大きい',a:'小さい',d:['細い','薄い','軽い']},{q:'新しい',a:'古い',d:['汚い','遅い','弱い']},{q:'勝つ',a:'負ける',d:['逃げる','耐える','挑む']},{q:'行く',a:'来る',d:['帰る','止まる','歩く']},{q:'寒い',a:'暑い',d:['温かい','涼しい','痛い']},{q:'夜',a:'昼',d:['朝','夕','晩']},{q:'好き',a:'嫌い',d:['普通','苦手','怖い']},{q:'男',a:'女',d:['人','友','親']},{q:'善',a:'悪',d:['偽','真','無']},{q:'得',a:'損',d:['負','負','苦']},{q:'白',a:'黒',d:['赤','青','黄']},{q:'縦',a:'横',d:['奥','斜','深']},{q:'空',a:'陸',d:['海','山','川']},{q:'北',a:'南',d:['西','東','中央']},{q:'昨日',a:'明日',d:['今日','明後日','一昨日']},{q:'敵',a:'味方',d:['親友','仲間','隣人']},{q:'広い',a:'狭い',d:['長い','太い','重い']},{q:'重い',a:'軽い',d:['薄い','低い','弱い']},{q:'強い',a:'弱い',d:['軽い','低い','遅い']},{q:'高い',a:'低い',d:['狭い','薄い','浅い']},{q:'暑い',a:'寒い',d:['涼しい','温かい','痛い']},{q:'明るい',a:'暗い',d:['重い','遅い','狭い']},{q:'太い',a:'細い',d:['短い','薄い','低い']},{q:'速い',a:'遅い',d:['弱い','短い','低い']},{q:'深い',a:'浅い',d:['低い','短い','薄い']},{q:'厚い',a:'薄い',d:['低い','短い','浅い']},{q:'安全',a:'危険',d:['不安','心配','不全']},{q:'正解',a:'不正解',d:['失敗','間違い','誤答']},{q:'成功',a:'失敗',d:['負け','間違い','中止']},{q:'安心',a:'不安',d:['心配','危険','恐怖']},{q:'開ける',a:'閉める',d:['止める','引く','押す']},{q:'押す',a:'引く',d:['止める','開ける','閉める']},{q:'出す',a:'入れる',d:['消す','止める','捨てる']},{q:'上',a:'下',d:['右','左','中']},{q:'左',a:'右',d:['上','下','中']},{q:'前',a:'後',d:['上','下','横']},{q:'始まり',a:'終わり',d:['中止','停止','休み']},{q:'最初',a:'最後',d:['途中','終盤','末尾']},{q:'売る',a:'買う',d:['貸す','捨てる','送る']},{q:'貸す',a:'借りる',d:['売る','返す','送る']},{q:'笑う',a:'泣く',d:['怒る','叫ぶ','黙る']},{q:'春',a:'秋',d:['夏','冬','雨']},{q:'夏',a:'冬',d:['春','秋','朝']},{q:'東',a:'西',d:['南','北','中央']},{q:'質問',a:'回答',d:['問題','返事','返信']},{q:'嘘',a:'本当',d:['誠実','真実','正解']}],
-            intermediate: [{q:'肯定',a:'否定',d:['反対','拒否','批判']},{q:'需要',a:'供給',d:['配給','支給','提供']},{q:'理想',a:'現実',d:['実情','現場','事象']},{q:'楽観',a:'悲観',d:['達観','諦観','冷静']},{q:'積極',a:'消極',d:['静止','後退','謙虚']},{q:'具体',a:'抽象',d:['曖昧','複雑','概念']},{q:'容易',a:'困難',d:['複雑','劣悪','多忙']},{q:'開始',a:'終了',d:['閉鎖','撤退','停止']},{q:'幸福',a:'不幸',d:['悲劇','憂鬱','災難']},{q:'期待',a:'失望',d:['絶望','後悔','落胆']},{q:'信頼',a:'不信',d:['疑惑','嫌悪','恐怖']},{q:'許可',a:'禁止',d:['拒絶','却下','制限']},{q:'主役',a:'脇役',d:['端役','悪役','代役']},{q:'平和',a:'戦争',d:['紛争','混乱','暴動']},{q:'自然',a:'人工',d:['模造','創作','合成']},{q:'過去',a:'未来',d:['現在','来世','昨今']},{q:'天国',a:'地獄',d:['煉獄','下界','深淵']},{q:'直感',a:'論理',d:['思考','推理','経験']},{q:'輸出',a:'輸入',d:['移送','転送','搬入']},{q:'利益',a:'損失',d:['負債','経費','減益']},{q:'原因',a:'結果',d:['成果','結論','事象']},{q:'供給',a:'需要',d:['支給','配給','需要']},{q:'集中',a:'拡散',d:['散乱','分離','独立']},{q:'主観',a:'客観',d:['達観','俯瞰','傍観']},{q:'能動',a:'受動',d:['反動','流動','振動']},{q:'偶然',a:'必然',d:['当然','自然','強制的']},{q:'保存',a:'破棄',d:['消去','削除','移動']},{q:'拡大',a:'縮小',d:['減少','低下','減衰']},{q:'文明',a:'野蛮',d:['原始','未開','混沌']},{q:'直接',a:'間接',d:['経由','遠隔','付近']},{q:'個人',a:'団体',d:['社会','組織','集合']},{q:'平等',a:'差別',d:['格差','偏見','孤立']},{q:'共通',a:'固有',d:['独自','個別','特殊']},{q:'固定',a:'流動',d:['移動','変化','不安定']},{q:'勝利',a:'敗北',d:['惜敗','惨敗','撤退']},{q:'一般',a:'特殊',d:['個別','例外','特定']},{q:'本物',a:'偽物',d:['模造','コピー','カバー']},{q:'集中',a:'分散',d:['分離','解体','消滅']},{q:'増加',a:'減少',d:['低下','縮小','減衰']},{q:'誕生',a:'死亡',d:['消滅','解体','撤去']},{q:'謙虚',a:'傲慢',d:['横柄','不遜','不敵']},{q:'勇気',a:'臆病',d:['臆面','弱気','慎重']},{q:'歓迎',a:'拒絶',d:['辞退','謝絶','却下']},{q:'開放',a:'閉鎖',d:['停止','禁止','終了']},{q:'集合',a:'解散',d:['離散','分離','撤退']},{q:'内側',a:'外側',d:['側面','背面','周辺']},{q:'上昇',a:'下降',d:['低下','沈下','減衰']},{q:'増加',a:'削減',d:['減少','撤廃','縮小']},{q:'親切',a:'不親切',d:['冷淡','残酷','無慈悲']},{q:'可能',a:'不可能',d:['難解','困難','無理']}],
-            advanced: [{q:'克己',a:'放縦',d:['妥協','怠惰','屈服']},{q:'帰納',a:'演繹',d:['類推','推論','逆説']},{q:'普遍',a:'特殊',d:['個別','例外','局所']},{q:'緻密',a:'粗雑',d:['散漫','粗末','適当']},{q:'脆弱',a:'強靭',d:['堅牢','頑丈','巨大']},{q:'饒舌',a:'寡黙',d:['沈黙','臆病','謙虚']},{q:'収束',a:'拡散',d:['膨張','発散','混乱']},{q:'絶対',a:'相対',d:['曖昧','比較','流動']},{q:'洗練',a:'野卑',d:['粗末','凡庸','稚拙']},{q:'内在',a:'超越',d:['外挿','逸脱','顕在']},{q:'隆起',a:'沈降',d:['没落','低下','沈殿']},{q:'隠蔽',a:'露呈',d:['発覚','暴露','提示']},{q:'過剰',a:'過小',d:['欠乏','枯渇','貧弱']},{q:'承諾',a:'拒絶',d:['謝絶','却下','辞退']},{q:'主導',a:'追随',d:['依存','随行','劣勢']},{q:'秩序',a:'混沌',d:['混迷','無法','散乱']},{q:'独創',a:'模倣',d:['複製','剽窃','借用']},{q:'建設',a:'破壊',d:['解体','撤去','消滅']},{q:'革新',a:'保守',d:['維持','停滞','伝統']},{q:'楽観',a:'悲観',d:['絶望','後悔','落胆']},{q:'剛毅',a:'柔弱',d:['虚弱','軟弱','貧弱']},{q:'枯渇',a:'氾濫',d:['充満','過剰','充足']},{q:'暫定',a:'確定',d:['本決定','恒久','終結']},{q:'需要',a:'供給',d:['支給','配給','提供']},{q:'遵守',a:'逸脱',d:['違反','放棄','無視']},{q:'促進',a:'抑制',d:['阻害','停止','遅延']},{q:'対立',a:'調和',d:['融和','妥協','協力']},{q:'抽象',a:'具体',d:['実体','詳細','個別']},{q:'沈黙',a:'雄弁',d:['演説','発言','叫び']},{q:'停滞',a:'進展',d:['前進','飛躍','活動']},{q:'統制',a:'放任',d:['自由','混乱','独立']},{q:'内向',a:'外向',d:['外交','社交','活発']},{q:'卑屈',a:'尊大',d:['横柄','不遜','不敵']},{q:'披露',a:'秘匿',d:['隠蔽','内緒','秘密']},{q:'膨張',a:'収縮',d:['縮小','凝縮','圧縮']},{q:'包括',a:'除外',d:['排除','例外','孤立']},{q:'冒涜',a:'崇拝',d:['信仰','礼賛','尊敬']},{q:'矛盾',a:'整合',d:['一致','妥当','正当']},{q:'野生',a:'飼育',d:['家畜','養殖','栽培']},{q:'優越',a:'劣等',d:['下位','敗北','凡庸']},{q:'有益',a:'無益',d:['有害','不要','損害']},{q:'抑制',a:'促進',d:['加速','奨励','推進']},{q:'利己',a:'利他',d:['奉仕','慈愛','慈善']},{q:'流動',a:'固定',d:['静止','安定','不変']},{q:'理論',a:'実践',d:['実務','実行','現物']},{q:'冷静',a:'興奮',d:['混乱','激昂','動揺']},{q:'露呈',a:'隠蔽',d:['秘匿','秘蔵','潜伏']},{q:'和解',a:'決裂',d:['対立','破局','衝突']},{q:'婉曲',a:'露骨',d:['直截','単刀直入','明白']},{q:'傲慢',a:'謙虚',d:['卑下','謙遜','慎み']}],
-            katakana: [{q:'メリット',a:'デメリット',d:['アセット','クレジット','リミット']},{q:'インドア',a:'アウトドア',d:['サイドドア','バックドア','ルーフ']},{q:'ポジティブ',a:'ネガティブ',d:['アクティブ','オルタナティブ','ネイティブ']},{q:'アナログ',a:'デジタル',d:['シグナル','チャネル','ビジュアル']},{q:'インフレ',a:'デフレ',d:['リフレ','デバフ','デリート']},{q:'プラス',a:'マイナス',d:['ボーナス','バランス','ステータス']},{q:'プロローグ',a:'エピローグ',d:['カタログ','モノローグ','ダイアログ']},{q:'マクロ',a:'ミクロ',d:['マグロ','レトロ','メトロ']},{q:'インプット',a:'アウトプット',d:['スループット','オフセット','アップセット']},{q:'メジャー',a:'マイナー',d:['レジャー','バリア','マスター']},{q:'アッパー',a:'ダウナー',d:['ショッパー','ホッパー','ストッパー']},{q:'バーチャル',a:'リアル',d:['ビジュアル','デジタル','メンタル']},{q:'マキシマム',a:'ミニマム',d:['ミディアム','プレミアム','アルバム']},{q:'パッシブ',a:'アクティブ',d:['ネガティブ','ポジティブ','プロアクティブ']},{q:'ハード',a:'ソフト',d:['カード','モード','ルート']},{q:'オン',a:'オフ',d:['アウト','オーバー','オープン']},{q:'ライト',a:'レフト',d:['ライド','ライド','ラスト']},{q:'シンプル',a:'コンプレックス',d:['コミックス','デュプレックス','サービス']},{q:'メロディ',a:'リズム',d:['ハーモニー','コーラス','ライブ']},{q:'フィジカル',a:'メンタル',d:['ビジュアル','デジタル','メディカル']},{q:'インポート',a:'エクスポート',d:['サポート','レポート','トランスポート']},{q:'ドライ',a:'ウェット',d:['セット','ホット','カット']},{q:'マジョリティ',a:'マイノリティ',d:['クオリティ','セキュリティ','プロパティ']},{q:'ハイ',a:'ロー',d:['ニュートラル','ロング','ワイド']},{q:'ビギナー',a:'エキスパート',d:['プレイヤー','マネージャー','パートナー']},{q:'ストレート',a:'カーブ',d:['シュート','スライダー','フォーク']},{q:'アタック',a:'ディフェンス',d:['ガード','ブロック','リターン']},{q:'オリジナル',a:'コピー',d:['フェイク','カバー','レプリカ']},{q:'フロント',a:'バック',d:['リア','サイド','トップ']},{q:'エントリー',a:'イグジット',d:['リタイア','エディット','リセット']},{q:'ベスト',a:'ワースト',d:['ラスト','コスト','テスト']},{q:'ボトム',a:'トップ',d:['アップ','ピーク','ハイ']},{q:'スタート',a:'ゴール',d:['フィニッシュ','エンド','ストップ']},{q:'シンクロ',a:'アシンクロ',d:['同期','反動','流動']},{q:'オーガニック',a:'ケミカル',d:['マジカル','フィジカル','テクニカル']},{q:'コンサバ',a:'プログレ',d:['アグレッシブ','カジュアル','トラッド']},{q:'ワイド',a:'ナロー',d:['スリム','タイト','ショート']},{q:'フィクション',a:'ノンフィクション',d:['ドキュメント','リアル','ファクト']},{q:'アップ',a:'ダウン',d:['オフ','アウト','バック']},{q:'オープン',a:'クローズ',d:['シャット','ロック','エンド']},{q:'セーフ',a:'アウト',d:['ファウル','エラー','ストライク']},{q:'ピーク',a:'ボトム',d:['ベース','ラスト','エンド']},{q:'セントラル',a:'ペリフェラル',d:['外部','シェル','カバー']},{q:'アウェー',a:'ホーム',d:['ハウス','ルーム','コート']},{q:'シングル',a:'ダブル',d:['ペア','コンビ','ユニット']},{q:'ショート',a:'ロング',d:['ワイド','トール','ラージ']},{q:'プロ',a:'アマ',d:['初心者','ルーキー','ファン']},{q:'ホワイト',a:'ブラック',d:['ブルー','レッド','グレー']},{q:'プッシュ',a:'プル',d:['プレス','タップ','スライド']},{q:'フロントエンド',a:'バックエンド',d:['サーバーサイド','クライアント','インフラ']}]
+        // ロジック部分は前回のものを完全に継承
+        let currentBgm = null, isMuted = false, currentIndex = 0, masterList = [];
+        const STAGE_CONFIG = [
+            { id: 1, threshold: 10, name: "初級：へん・つくり", color: "bg-blue-600", bgm: "bgm-stage1", msg: "次は「かんむり」が登場。" },
+            { id: 2, threshold: 20, name: "中級：かんむり・あし", color: "bg-emerald-600", bgm: "bgm-stage2", msg: "次は「かまえ」が来るぞ。" },
+            { id: 3, threshold: 30, name: "上級：かまえ・たれ", color: "bg-amber-600", bgm: "bgm-stage3", msg: "ここからは複雑な合体。" },
+            { id: 4, threshold: 40, name: "超級：難読・複雑", color: "bg-orange-600", bgm: "bgm-stage4", msg: "いよいよ最終試練だ。" },
+            { id: 5, threshold: 50, name: "究極：漢字マスター", color: "bg-rose-600", bgm: "bgm-stage5", msg: "" }
+        ];
+        const taunts = ["そんなのもわかんないの？w", "合体失敗！やり直し！", "パーツの見分けつかないの？", "本気出してこれ？w", "脳みそ動いてる？", "次は頑張ろうね(棒)", "漢字、苦手なんだねw", "ププッw どんまいw", "それ、合体できないよ？w", "お疲れ様でした〜(笑)"];
+        
+        const gameData = {
+            stage1: [{t:'木',r:'亻',k:'休',d:['彳','土','走']},{t:'言',r:'亻',k:'信',d:['彳','走','心']},{t:'反',r:'木',k:'板',d:['扌','火','目']},{t:'吾',r:'言',k:'語',d:['足','口','女']},{t:'売',r:'言',k:'読',d:['亻','扌','彳']},{t:'旨',r:'扌',k:'指',d:['木','金','土']},{t:'舌',r:'言',k:'話',d:['口','目','日']},{t:'永',r:'氵',k:'泳',d:['冫','木','火']},{t:'青',r:'日',k:'晴',d:['广','宀','欠']},{t:'寺',r:'扌',k:'持',d:['疒','宀','广']}],
+            stage2: [{t:'女',r:'宀',k:'安',d:['艹','竹','雨']},{t:'合',r:'竹',k:'答',d:['氵','阝','辶']},{t:'相',r:'心',k:'想',d:['土','目','火']},{t:'木',r:'宀',k:'宋',d:['竹','穴','艹']},{t:'元',r:'宀',k:'完',d:['艹','竹','穴']},{t:'立',r:'竹',k:'笠',d:['冫','雨','穴']},{t:'古',r:'艹',k:'苦',d:['竹','雨','宀']},{t:'龍',r:'衣',k:'襲',d:['艹','穴','走']},{t:'官',r:'竹',k:'管',d:['雨','冖','亠']},{t:'心',r:'艹',k:'芯',d:['竹','雨','穴']}],
+            stage3: [{t:'口',r:'門',k:'問',d:['疒','厂','广']},{t:'耳',r:'門',k:'聞',d:['囗','尸','戸']},{t:'王',r:'門',k:'閏',d:['囗','厂','广']},{t:'木',r:'囗',k:'困',d:['走','尸','戸']},{t:'正',r:'疒',k:'症',d:['广','厂','尸']},{t:'占',r:'广',k:'店',d:['疒','厂','囗']},{t:'口',r:'囗',k:'回',d:['疒','广','厂']},{t:'矢',r:'疒',k:'疾',d:['广','尸','囗']},{t:'日',r:'門',k:'間',d:['疒','厂','广']},{t:'木',r:'門',k:'閑',d:['疒','尸','戸']}],
+            stage4: [{t:'軍',r:'辶',k:'運',d:['廴','彳','弓']},{t:'谷',r:'欠',k:'欲',d:['支','攵','心']},{t:'交',r:'阝',k:'郊',d:['辶','廴','彳']},{t:'取',r:'走',k:'趣',d:['足','身','車']},{t:'正',r:'廴',k:'延',d:['門','扌','弓']},{t:'隹',r:'辶',k:'進',d:['廴','彳','弓']},{t:'冬',r:'糸',k:'終',d:['辶','彳','廴']},{t:'戸',r:'隹',k:'雇',d:['辶','木','水']},{t:'心',r:'今',k:'念',d:['弓','几','力']},{t:'者',r:'言',k:'諸',d:['疒','足','門']}],
+            stage5: [{t:'妻',r:'冫',k:'凄',d:['氵','广','欠']},{t:'非',r:'戸', k:'扉', d:['門', '疒', '阝']},{t:'疑',r:'扌',k:'擬',d:['木','金','土']},{t:'止',r:'𠆢',k:'企',d:['扌','目','火']},{t:'曼',r:'氵',k:'漫',d:['阝','火','土']},{t:'召',r:'走',k:'超',d:['足','身','辶']},{t:'軍',r:'光',k:'輝',d:['火','疒','車']},{t:'卑',r:'石',k:'碑',d:['山','門','金']},{t:'鬼',r:'未',k:'魅',d:['土','末','言']},{t:'革',r:'便',k:'鞭',d:['疒','廴','弓']}]
         };
 
-        const STAGES = [
-            { id: 1, name: "初級：日常語", key: 'elementary', color: "bg-blue-600", bgm: "bgm-stage1" },
-            { id: 2, name: "中級：概念語", key: 'intermediate', color: "bg-emerald-600", bgm: "bgm-stage2" },
-            { id: 3, name: "上級：難読熟語", key: 'advanced', color: "bg-amber-600", bgm: "bgm-stage3" },
-            { id: 4, name: "番外：カタカナ語", key: 'katakana', color: "bg-rose-600", bgm: "bgm-stage4" }
-        ];
-
-        let quizList = [];
-        let currentIndex = 0;
-        let score = 0;
-        let playerName = "ななし";
-        let questionStartTime = 0;
-        let currentBgm = null;
-        let isMuted = false;
-
-        function playBgm(id) {
-            const nextBgm = document.getElementById(id);
-            if (!nextBgm || currentBgm === nextBgm) return;
-            if (currentBgm) { currentBgm.pause(); currentBgm.currentTime = 0; }
-            currentBgm = nextBgm;
-            currentBgm.volume = 0.3;
-            if (!isMuted) currentBgm.play().catch(e => {});
+        function shuffle(a) { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+        function showInstructions() { document.getElementById('title-screen').classList.add('hidden'); document.getElementById('instruction-screen').classList.remove('hidden'); }
+        function showPWAInstallGuide() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const ov = document.getElementById('overlay'), m = document.getElementById('overlay-message'), ic = document.getElementById('overlay-icon'), bt = document.getElementById('action-btn'), kb = document.getElementById('result-kanji-container');
+            ov.classList.remove('hidden'); kb.classList.add('hidden'); ic.textContent = "📲";
+            if (isIOS) { m.innerHTML = "iPhone/iPadの方は<br><span class='text-emerald-400 font-black'>「共有ボタン」</span>を押して<br><span class='text-emerald-400 font-black'>「ホーム画面に追加」</span>を<br>選んでね！"; } else { m.innerHTML = "ブラウザのメニューから<br><span class='text-emerald-400 font-black'>「インストール」</span><br>または<br><span class='text-emerald-400 font-black'>「ホーム画面に追加」</span>を<br>選んでね！"; }
+            bt.textContent = "わかった！"; bt.className = "w-full max-w-xs py-4 bg-slate-700 text-white rounded-2xl font-black text-xl mx-auto"; bt.onclick = () => ov.classList.add('hidden');
         }
-
-        function playSfx(id) {
-            if (isMuted) return;
-            const sfx = document.getElementById(id);
-            if (sfx) { sfx.currentTime = 0; sfx.volume = 0.5; sfx.play().catch(e => {}); }
+        function resetToTitle() { if (currentBgm) { currentBgm.pause(); currentBgm.currentTime = 0; currentBgm = null; } currentIndex = 0; document.querySelectorAll('#game-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('title-screen').classList.remove('hidden'); }
+        function playBgm(id) { const n = document.getElementById(id); if (!n || currentBgm === n) return; if (currentBgm) { currentBgm.pause(); currentBgm.currentTime = 0; } currentBgm = n; currentBgm.volume = 0.3; if (!isMuted) currentBgm.play().catch(e=>{}); }
+        function playSfx(id) { if (isMuted) return; const s = document.getElementById(id); if (s) { s.currentTime = 0; s.volume = 0.5; s.play().catch(e=>{}); } }
+        function toggleMute() { isMuted = !isMuted; document.querySelectorAll('[id$="volume-on"]').forEach(i => i.classList.toggle('hidden', isMuted)); document.querySelectorAll('[id$="volume-off"]').forEach(i => i.classList.toggle('hidden', !isMuted)); if (currentBgm) isMuted ? currentBgm.pause() : currentBgm.play().catch(e=>{}); }
+        function startGame() { document.getElementById('instruction-screen').classList.add('hidden'); document.getElementById('game-screen').classList.remove('hidden'); masterList = [...shuffle([...gameData.stage1]),...shuffle([...gameData.stage2]),...shuffle([...gameData.stage3]),...shuffle([...gameData.stage4]),...shuffle([...gameData.stage5])]; currentIndex = 0; initQuiz(); }
+        function initQuiz() { 
+            const q = masterList[currentIndex], s = STAGE_CONFIG.find(c => currentIndex < c.threshold) || STAGE_CONFIG[4]; 
+            playBgm(s.bgm); document.getElementById('tsukuri-display').textContent = q.t; document.getElementById('q-num').textContent = currentIndex+1; document.getElementById('stage-count').textContent = s.id; document.getElementById('progress-bar').style.width = `${(currentIndex/50)*100}%`; 
+            const b = document.getElementById('level-badge'); b.textContent = s.name; b.className = `px-3 py-1 ${s.color} text-white text-[10px] rounded-full font-bold shadow-md`; 
+            const cs = shuffle([q.r, ...q.d]), g = document.getElementById('choices-grid'); g.innerHTML = ''; 
+            cs.forEach(r => { const btn = document.createElement('button'); btn.className = "radical-btn kanji-font aspect-square text-5xl sm:text-6xl"; btn.textContent = r; btn.onclick = () => check(r); g.appendChild(btn); }); 
         }
-
-        function toggleMute() {
-            isMuted = !isMuted;
-            document.querySelectorAll('.volume-on').forEach(el => el.classList.toggle('hidden', isMuted));
-            document.querySelectorAll('.volume-off').forEach(el => el.classList.toggle('hidden', !isMuted));
-            if (currentBgm) isMuted ? currentBgm.pause() : currentBgm.play().catch(e => {});
-        }
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        // 画面遷移関数
-        function showInstructions() {
-            document.getElementById('title-screen').classList.add('hidden');
-            document.getElementById('instruction-screen').classList.remove('hidden');
-        }
-
-        function showNicknameInput() {
-            document.getElementById('instruction-screen').classList.add('hidden');
-            document.getElementById('nickname-screen').classList.remove('hidden');
-        }
-
-        function startGame() {
-            const nameInput = document.getElementById('player-name').value.trim();
-            playerName = nameInput || "ななしの剣士";
-            
-            document.getElementById('nickname-screen').classList.add('hidden');
-            document.getElementById('overlay').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('fixed-mute-btn').classList.add('hidden');
-            
-            quizList = [];
-            STAGES.forEach(stage => {
-                const source = DATA[stage.key];
-                const shuffled = shuffle([...source]);
-                quizList = quizList.concat(shuffled.slice(0, 15).map(item => ({...item, stage})));
-            });
-            currentIndex = 0;
-            score = 0;
-            document.getElementById('total-score').textContent = "0";
-            initQuiz();
-        }
-
-        function initQuiz() {
-            const q = quizList[currentIndex];
-            const s = q.stage;
-            playBgm(s.bgm);
-
-            document.getElementById('question-word').textContent = q.q;
-            document.getElementById('q-num').textContent = currentIndex + 1;
-            document.getElementById('progress-bar').style.width = `${(currentIndex / 60) * 100}%`;
-            
-            const badge = document.getElementById('level-badge');
-            badge.textContent = s.name;
-            badge.className = `px-4 py-1.5 ${s.color} text-white text-xs rounded-full font-bold shadow-lg`;
-
-            const choices = shuffle([q.a, ...q.d]);
-            const grid = document.getElementById('choices-grid');
-            grid.innerHTML = '';
-            
-            choices.forEach(text => {
-                const btn = document.createElement('button');
-                btn.className = "choice-btn py-5 rounded-2xl text-xl font-bold active:scale-95 transition-all";
-                btn.textContent = text;
-                btn.onclick = () => checkAnswer(text);
-                grid.appendChild(btn);
-            });
-            questionStartTime = Date.now();
-        }
-
-        function checkAnswer(selected) {
-            const q = quizList[currentIndex];
-            const isCorrect = (selected === q.a);
-            
-            if (isCorrect) {
-                playSfx('sfx-correct');
-                const timeTaken = (Date.now() - questionStartTime) / 1000;
-                let evaluation = "", evalColor = "", bonus = 0;
-                if (timeTaken < 1.0) { evaluation = "EXCELLENT!!"; evalColor = "text-yellow-400"; bonus = 500; }
-                else if (timeTaken < 2.0) { evaluation = "GOOD!"; evalColor = "text-emerald-400"; bonus = 300; }
-                else if (timeTaken < 3.5) { evaluation = "NICE"; evalColor = "text-blue-400"; bonus = 100; }
-                else { evaluation = "SLOW..."; evalColor = "text-slate-400"; bonus = 0; }
-
-                const points = 1000 + bonus;
-                score += points;
-                document.getElementById('total-score').textContent = score.toLocaleString();
-                showFeedback(evaluation, evalColor, points);
-
-                currentIndex++;
-                setTimeout(() => {
-                    if (currentIndex >= 60) showResult(true);
-                    else if (currentIndex % 15 === 0) showStageClear();
-                    else initQuiz();
-                }, 600);
-            } else {
-                if (currentBgm) currentBgm.pause();
-                playSfx('sfx-wrong');
-                showResult(false);
-            }
-        }
-
-        function showFeedback(text, colorClass, points) {
-            const layer = document.getElementById('feedback-layer');
-            const el = document.createElement('div');
-            el.className = `feedback-pop flex flex-col items-center`;
-            el.innerHTML = `<div class="text-4xl font-black italic drop-shadow-lg ${colorClass}">${text}</div><div class="text-xl font-bold text-white mt-1">+${points}</div>`;
-            layer.appendChild(el);
-            setTimeout(() => el.remove(), 800);
-        }
-
-        function showStageClear() {
-            const ov = document.getElementById('overlay');
-            ov.classList.remove('hidden');
-            document.getElementById('score-report').classList.add('hidden');
-            document.getElementById('ranking-list').parentElement.classList.add('hidden');
-            
-            document.getElementById('overlay-icon').textContent = "🏅";
-            document.getElementById('overlay-message').innerHTML = `<span class="text-emerald-400">STAGE ${currentIndex/15} CLEAR!</span><br>その調子！`;
-            const bt = document.getElementById('action-btn');
-            bt.textContent = "次のステージへ";
-            bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); };
-        }
-
-        async function showResult(isWin) {
-            const ov = document.getElementById('overlay');
-            ov.classList.remove('hidden');
-            document.getElementById('score-report').classList.remove('hidden');
-            document.getElementById('final-score').textContent = score.toLocaleString();
-            document.getElementById('ranking-list').parentElement.classList.remove('hidden');
-
-            const m = document.getElementById('overlay-message');
-            const ic = document.getElementById('overlay-icon');
-            const review = document.getElementById('review-box');
-            const status = document.getElementById('ranking-status');
-
-            if (isWin) {
-                playBgm('bgm-ending');
-                ic.textContent = "👑";
-                m.textContent = "全ステージ完全制覇！";
-                review.classList.add('hidden');
-            } else {
-                ic.textContent = "💀";
-                m.innerHTML = `<span class="text-rose-500">サバイバル終了...</span><br>記録: ${currentIndex} 問`;
-                const q = quizList[currentIndex];
-                document.getElementById('rev-q').textContent = q.q;
-                document.getElementById('rev-a').textContent = q.a;
-                review.classList.remove('hidden');
-            }
-
-            // GASへ送信＆ランキング取得
-            if (GAS_URL.includes("https")) {
-                status.textContent = "ランキング集計中...";
-                try {
-                    // 送信
-                    await fetch(GAS_URL, {
-                        method: 'POST',
-                        mode: 'no-cors', // CORS対策
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: playerName, score: score })
-                    });
-                    
-                    // 取得
-                    const res = await fetch(GAS_URL);
-                    const rankingData = await res.json();
-                    renderRanking(rankingData);
-                    status.textContent = "全国ランキング更新完了！";
-                } catch (e) {
-                    console.error(e);
-                    status.textContent = "ランキング取得に失敗しました";
-                }
-            } else {
-                status.textContent = "GAS URLが設定されていません";
-            }
-        }
-
-        function renderRanking(data) {
-            const list = document.getElementById('ranking-list');
-            list.innerHTML = data.map((r, i) => `
-                <div class="flex justify-between items-center py-3 px-4 rank-row ${r.name === playerName && r.score === score ? 'bg-emerald-500/20' : ''}">
-                    <div class="flex items-center">
-                        <span class="w-6 text-xs font-black ${i<3 ? 'text-yellow-400' : 'text-slate-500'}">${i+1}</span>
-                        <span class="text-sm font-bold text-slate-200">${r.name}</span>
-                    </div>
-                    <span class="text-sm font-black text-emerald-400 font-mono">${Number(r.score).toLocaleString()}</span>
-                </div>
-            `).join('');
-        }
+        function check(r) { const q = masterList[currentIndex], isC = (r === q.r), ov = document.getElementById('overlay'), m = document.getElementById('overlay-message'), ic = document.getElementById('overlay-icon'), bt = document.getElementById('action-btn'), kb = document.getElementById('result-kanji-container'); ov.classList.remove('hidden'); if (isC) { playSfx('sfx-correct'); currentIndex++; const se = STAGE_CONFIG.findIndex(s => currentIndex === s.threshold); if (se !== -1 && currentIndex < 50) { ic.textContent = "🏆"; m.innerHTML = "STAGE CLEAR!<br>" + STAGE_CONFIG[se].msg; kb.classList.add('hidden'); bt.textContent = "次のステージへ"; bt.className = "w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-xl"; bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; } else if (currentIndex >= 50) { playBgm('bgm-ending'); ic.textContent = "👑"; m.innerHTML = "全問制覇！おめでとう！"; kb.classList.remove('hidden'); document.getElementById('result-kanji').textContent = q.k; bt.textContent = "タイトルへ"; bt.className = "w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-xl"; bt.onclick = resetToTitle; } else { ic.textContent = "🌸"; m.innerHTML = "正解！"; kb.classList.remove('hidden'); document.getElementById('result-kanji').textContent = q.k; bt.textContent = "次へ"; bt.className = "w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-xl"; bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; } } else { if (currentBgm) currentBgm.pause(); playSfx('sfx-wrong'); ic.textContent = "💩"; m.innerHTML = `<span class="text-rose-500 font-black">${taunts[Math.floor(Math.random()*taunts.length)]}</span><br><br>記録: ${currentIndex} 問`; kb.classList.add('hidden'); bt.textContent = "再挑戦する"; bt.className = "w-full py-4 bg-slate-700 text-white rounded-2xl font-black text-xl"; bt.onclick = resetToTitle; } }
     </script>
 </body>
 </html>
