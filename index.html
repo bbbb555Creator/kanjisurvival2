@@ -27,12 +27,17 @@
             -webkit-tap-highlight-color: transparent;
             margin: 0;
             padding: 0;
-            height: 100dvh; /* 動的ビューポートで高さを固定 */
-            overflow: hidden; /* スクロールを禁止 */
+            height: 100dvh;
+            overflow: hidden;
+            /* iPhoneのノッチとホームバーを考慮したパディング */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
 
         #game-container {
-            height: 100dvh;
+            height: 100%; /* bodyのpaddingを除いた100% */
             display: flex;
             flex-direction: column;
             position: relative;
@@ -46,12 +51,9 @@
             background-image: url('kaisi2.png');
             background-size: 100% 100%;
             background-repeat: no-repeat;
-            background-color: transparent;
-            border: none;
             filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
-            /* 画面の高さに合わせてサイズを柔軟に変更 */
             aspect-ratio: 1 / 1;
-            max-height: 25vh; 
+            max-height: 22vh; /* ノッチ分を考慮して少しだけ小さめに調整 */
             margin: 0 auto;
         }
 
@@ -59,8 +61,6 @@
             background-image: url('kaisi3.png');
             background-size: 100% 100%;
             background-repeat: no-repeat;
-            background-color: transparent;
-            border: none;
             color: #ffffff;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             transition: transform 0.1s;
@@ -74,27 +74,25 @@
         .guide-card {
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
             border: 1px solid rgba(52, 211, 153, 0.3);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
         }
 
         .logo-float { animation: float 4s ease-in-out infinite; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
         .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(52, 211, 153, 0.3); border-radius: 10px; }
     </style>
 </head>
 <body>
     <div id="game-container" class="w-full relative">
         
-        <!-- Version Tag -->
-        <div class="absolute top-4 left-4 z-50 text-[8px] text-slate-500 font-mono">
-            ver.2.9.2 (Optimized)
+        <!-- Version Tag - 位置を少し調整 -->
+        <div class="absolute top-2 left-4 z-50 text-[8px] text-slate-500 font-mono">
+            ver.2.9.2 (Safe Area Optimized)
         </div>
 
         <!-- Title Screen -->
-        <div id="title-screen" class="flex-grow flex flex-col items-center justify-between text-center py-10 px-8 fade-in">
+        <div id="title-screen" class="flex-grow flex flex-col items-center justify-between text-center py-6 px-8 fade-in">
             <div class="w-full flex justify-end">
                 <button onclick="toggleMute()" class="p-3 bg-slate-800/90 rounded-full text-slate-400 border border-slate-700">
                     <svg id="title-volume-on" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.686-3.686a1 1 0 011.111-.238zm5.459 2.158a1 1 0 011.414 0 7.5 7.5 0 010 10.608 1 1 0 01-1.414-1.414 5.5 5.5 0 000-7.78 1 1 0 010-1.414zm-2.828 2.828a1 1 0 011.414 0 3.5 3.5 0 010 4.95" /></svg>
@@ -102,9 +100,9 @@
                 </button>
             </div>
             <div class="flex-grow flex items-center justify-center w-full">
-                <img src="rogo.png" alt="ロゴ" class="w-full max-w-[280px] logo-float drop-shadow-[0_0_20px_rgba(52,211,153,0.3)]">
+                <img src="rogo.png" alt="ロゴ" class="w-full max-w-[260px] logo-float drop-shadow-[0_0_20px_rgba(52,211,153,0.3)]">
             </div>
-            <div class="w-full max-w-xs space-y-3 mb-4">
+            <div class="w-full max-w-xs space-y-3 mb-6">
                 <button onclick="showInstructions()" class="w-full active:scale-95 transition-all">
                     <img src="botan2.PNG" alt="遊び方" class="w-full drop-shadow-lg">
                 </button>
@@ -116,7 +114,7 @@
 
         <!-- Instruction Screen -->
         <div id="instruction-screen" class="hidden flex-grow flex flex-col items-center justify-center p-4 fade-in overflow-hidden">
-            <div class="w-full max-w-md flex flex-col h-full py-4">
+            <div class="w-full max-w-md flex flex-col h-full py-2">
                 <div class="text-center mb-4">
                     <h2 class="text-2xl font-black text-emerald-400">遊び方ガイド</h2>
                 </div>
@@ -143,7 +141,7 @@
 
         <!-- Game Screen -->
         <div id="game-screen" class="hidden flex-grow flex flex-col p-4 fade-in">
-            <div class="flex justify-between items-center mt-2 mb-2">
+            <div class="flex justify-between items-center mb-2">
                 <div id="level-badge" class="px-3 py-1 text-white text-[10px] rounded-full font-bold shadow-md"></div>
                 <div class="text-[10px] text-slate-300 font-bold text-right leading-none">STAGE<br><span id="stage-count" class="text-emerald-400 text-2xl font-black">1</span></div>
             </div>
@@ -152,20 +150,20 @@
                 <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
             </div>
 
-            <div class="text-center flex-grow flex flex-col justify-around py-2">
+            <div class="text-center flex-grow flex flex-col justify-around py-1">
                 <div>
                     <div class="text-slate-300 text-sm font-bold">第 <span id="q-num" class="text-3xl font-black text-white">1</span> / 50 問</div>
-                    <div id="tsukuri-box" class="w-48 h-48 mx-auto mt-2 flex items-center justify-center relative">
-                        <span id="tsukuri-display" class="kanji-font text-8xl text-white"></span>
+                    <div id="tsukuri-box" class="w-44 h-44 mx-auto mt-1 flex items-center justify-center relative">
+                        <span id="tsukuri-display" class="kanji-font text-7xl text-white"></span>
                     </div>
                 </div>
                 
                 <div id="choices-grid" class="grid grid-cols-2 gap-3 w-full max-w-sm mx-auto">
-                    <!-- ボタンはJavaScriptで生成 -->
+                    <!-- ボタン -->
                 </div>
             </div>
 
-            <div class="flex justify-center mt-2">
+            <div class="flex justify-center mt-1">
                 <button onclick="toggleMute()" class="p-2 text-slate-500"><svg id="game-volume-on" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.686-3.686a1 1 0 011.111-.238zm5.459 2.158a1 1 0 011.414 0 7.5 7.5 0 010 10.608 1 1 0 01-1.414-1.414 5.5 5.5 0 000-7.78 1 1 0 010-1.414zm-2.828 2.828a1 1 0 011.414 0 3.5 3.5 0 010 4.95" /></svg><svg id="game-volume-off" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12" /></svg></button>
             </div>
         </div>
@@ -183,7 +181,7 @@
         </div>
     </div>
 
-    <!-- Audio elements -->
+    <!-- Audio (中身は省略せずそのまま使用してください) -->
     <audio id="bgm-stage1" loop preload="auto"><source src="1.mp3" type="audio/mpeg"></audio>
     <audio id="bgm-stage2" loop preload="auto"><source src="2.mp3" type="audio/mpeg"></audio>
     <audio id="bgm-stage3" loop preload="auto"><source src="3.mp3" type="audio/mpeg"></audio>
@@ -194,6 +192,7 @@
     <audio id="sfx-wrong" preload="auto"><source src="batu.mp3" type="audio/mpeg"></audio>
 
     <script>
+        // ロジック部分は前回のものを完全に継承
         let currentBgm = null, isMuted = false, currentIndex = 0, masterList = [];
         const STAGE_CONFIG = [
             { id: 1, threshold: 10, name: "初級：へん・つくり", color: "bg-blue-600", bgm: "bgm-stage1", msg: "次は「かんむり」が登場。" },
@@ -213,60 +212,27 @@
         };
 
         function shuffle(a) { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
-        
         function showInstructions() { document.getElementById('title-screen').classList.add('hidden'); document.getElementById('instruction-screen').classList.remove('hidden'); }
-        
         function showPWAInstallGuide() {
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const ov = document.getElementById('overlay');
-            const m = document.getElementById('overlay-message');
-            const ic = document.getElementById('overlay-icon');
-            const bt = document.getElementById('action-btn');
-            const kb = document.getElementById('result-kanji-container');
-            ov.classList.remove('hidden');
-            kb.classList.add('hidden');
-            ic.textContent = "📲";
-            if (isIOS) {
-                m.innerHTML = "iPhone/iPadの方は<br><span class='text-emerald-400 font-black'>「共有ボタン」</span>を押して<br><span class='text-emerald-400 font-black'>「ホーム画面に追加」</span>を<br>選んでね！";
-            } else {
-                m.innerHTML = "ブラウザのメニューから<br><span class='text-emerald-400 font-black'>「インストール」</span><br>または<br><span class='text-emerald-400 font-black'>「ホーム画面に追加」</span>を<br>選んでね！";
-            }
-            bt.textContent = "わかった！";
-            bt.className = "w-full max-w-xs py-4 bg-slate-700 text-white rounded-2xl font-black text-xl mx-auto";
-            bt.onclick = () => ov.classList.add('hidden');
+            const ov = document.getElementById('overlay'), m = document.getElementById('overlay-message'), ic = document.getElementById('overlay-icon'), bt = document.getElementById('action-btn'), kb = document.getElementById('result-kanji-container');
+            ov.classList.remove('hidden'); kb.classList.add('hidden'); ic.textContent = "📲";
+            if (isIOS) { m.innerHTML = "iPhone/iPadの方は<br><span class='text-emerald-400 font-black'>「共有ボタン」</span>を押して<br><span class='text-emerald-400 font-black'>「ホーム画面に追加」</span>を<br>選んでね！"; } else { m.innerHTML = "ブラウザのメニューから<br><span class='text-emerald-400 font-black'>「インストール」</span><br>または<br><span class='text-emerald-400 font-black'>「ホーム画面に追加」</span>を<br>選んでね！"; }
+            bt.textContent = "わかった！"; bt.className = "w-full max-w-xs py-4 bg-slate-700 text-white rounded-2xl font-black text-xl mx-auto"; bt.onclick = () => ov.classList.add('hidden');
         }
-
         function resetToTitle() { if (currentBgm) { currentBgm.pause(); currentBgm.currentTime = 0; currentBgm = null; } currentIndex = 0; document.querySelectorAll('#game-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('title-screen').classList.remove('hidden'); }
         function playBgm(id) { const n = document.getElementById(id); if (!n || currentBgm === n) return; if (currentBgm) { currentBgm.pause(); currentBgm.currentTime = 0; } currentBgm = n; currentBgm.volume = 0.3; if (!isMuted) currentBgm.play().catch(e=>{}); }
         function playSfx(id) { if (isMuted) return; const s = document.getElementById(id); if (s) { s.currentTime = 0; s.volume = 0.5; s.play().catch(e=>{}); } }
         function toggleMute() { isMuted = !isMuted; document.querySelectorAll('[id$="volume-on"]').forEach(i => i.classList.toggle('hidden', isMuted)); document.querySelectorAll('[id$="volume-off"]').forEach(i => i.classList.toggle('hidden', !isMuted)); if (currentBgm) isMuted ? currentBgm.pause() : currentBgm.play().catch(e=>{}); }
         function startGame() { document.getElementById('instruction-screen').classList.add('hidden'); document.getElementById('game-screen').classList.remove('hidden'); masterList = [...shuffle([...gameData.stage1]),...shuffle([...gameData.stage2]),...shuffle([...gameData.stage3]),...shuffle([...gameData.stage4]),...shuffle([...gameData.stage5])]; currentIndex = 0; initQuiz(); }
-        
         function initQuiz() { 
-            const q = masterList[currentIndex]; 
-            const s = STAGE_CONFIG.find(c => currentIndex < c.threshold) || STAGE_CONFIG[4]; 
-            playBgm(s.bgm); 
-            document.getElementById('tsukuri-display').textContent = q.t; 
-            document.getElementById('q-num').textContent = currentIndex+1; 
-            document.getElementById('stage-count').textContent = s.id; 
-            document.getElementById('progress-bar').style.width = `${(currentIndex/50)*100}%`; 
-            const b = document.getElementById('level-badge'); 
-            b.textContent = s.name; 
-            b.className = `px-3 py-1 ${s.color} text-white text-[10px] rounded-full font-bold shadow-md`; 
-            
-            const cs = shuffle([q.r, ...q.d]); 
-            const g = document.getElementById('choices-grid'); 
-            g.innerHTML = ''; 
-            cs.forEach(r => { 
-                const btn = document.createElement('button'); 
-                btn.className = "radical-btn kanji-font aspect-square text-5xl sm:text-6xl"; 
-                btn.textContent = r; 
-                btn.onclick = () => check(r); 
-                g.appendChild(btn); 
-            }); 
+            const q = masterList[currentIndex], s = STAGE_CONFIG.find(c => currentIndex < c.threshold) || STAGE_CONFIG[4]; 
+            playBgm(s.bgm); document.getElementById('tsukuri-display').textContent = q.t; document.getElementById('q-num').textContent = currentIndex+1; document.getElementById('stage-count').textContent = s.id; document.getElementById('progress-bar').style.width = `${(currentIndex/50)*100}%`; 
+            const b = document.getElementById('level-badge'); b.textContent = s.name; b.className = `px-3 py-1 ${s.color} text-white text-[10px] rounded-full font-bold shadow-md`; 
+            const cs = shuffle([q.r, ...q.d]), g = document.getElementById('choices-grid'); g.innerHTML = ''; 
+            cs.forEach(r => { const btn = document.createElement('button'); btn.className = "radical-btn kanji-font aspect-square text-5xl sm:text-6xl"; btn.textContent = r; btn.onclick = () => check(r); g.appendChild(btn); }); 
         }
-
-        function check(r) { const q = masterList[currentIndex]; const isC = (r === q.r); const ov = document.getElementById('overlay'), m = document.getElementById('overlay-message'), ic = document.getElementById('overlay-icon'), bt = document.getElementById('action-btn'), kb = document.getElementById('result-kanji-container'); ov.classList.remove('hidden'); if (isC) { playSfx('sfx-correct'); currentIndex++; const se = STAGE_CONFIG.findIndex(s => currentIndex === s.threshold); if (se !== -1 && currentIndex < 50) { ic.textContent = "🏆"; m.innerHTML = "STAGE CLEAR!<br>" + STAGE_CONFIG[se].msg; kb.classList.add('hidden'); bt.textContent = "次のステージへ"; bt.className = "w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-xl"; bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; } else if (currentIndex >= 50) { playBgm('bgm-ending'); ic.textContent = "👑"; m.innerHTML = "全問制覇！おめでとう！"; kb.classList.remove('hidden'); document.getElementById('result-kanji').textContent = q.k; bt.textContent = "タイトルへ"; bt.className = "w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-xl"; bt.onclick = resetToTitle; } else { ic.textContent = "🌸"; m.innerHTML = "正解！"; kb.classList.remove('hidden'); document.getElementById('result-kanji').textContent = q.k; bt.textContent = "次へ"; bt.className = "w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-xl"; bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; } } else { if (currentBgm) currentBgm.pause(); playSfx('sfx-wrong'); ic.textContent = "💩"; m.innerHTML = `<span class="text-rose-500 font-black">${taunts[Math.floor(Math.random()*taunts.length)]}</span><br><br>記録: ${currentIndex} 問`; kb.classList.add('hidden'); bt.textContent = "再挑戦する"; bt.className = "w-full py-4 bg-slate-700 text-white rounded-2xl font-black text-xl"; bt.onclick = resetToTitle; } }
+        function check(r) { const q = masterList[currentIndex], isC = (r === q.r), ov = document.getElementById('overlay'), m = document.getElementById('overlay-message'), ic = document.getElementById('overlay-icon'), bt = document.getElementById('action-btn'), kb = document.getElementById('result-kanji-container'); ov.classList.remove('hidden'); if (isC) { playSfx('sfx-correct'); currentIndex++; const se = STAGE_CONFIG.findIndex(s => currentIndex === s.threshold); if (se !== -1 && currentIndex < 50) { ic.textContent = "🏆"; m.innerHTML = "STAGE CLEAR!<br>" + STAGE_CONFIG[se].msg; kb.classList.add('hidden'); bt.textContent = "次のステージへ"; bt.className = "w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-xl"; bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; } else if (currentIndex >= 50) { playBgm('bgm-ending'); ic.textContent = "👑"; m.innerHTML = "全問制覇！おめでとう！"; kb.classList.remove('hidden'); document.getElementById('result-kanji').textContent = q.k; bt.textContent = "タイトルへ"; bt.className = "w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-xl"; bt.onclick = resetToTitle; } else { ic.textContent = "🌸"; m.innerHTML = "正解！"; kb.classList.remove('hidden'); document.getElementById('result-kanji').textContent = q.k; bt.textContent = "次へ"; bt.className = "w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-xl"; bt.onclick = () => { ov.classList.add('hidden'); initQuiz(); }; } } else { if (currentBgm) currentBgm.pause(); playSfx('sfx-wrong'); ic.textContent = "💩"; m.innerHTML = `<span class="text-rose-500 font-black">${taunts[Math.floor(Math.random()*taunts.length)]}</span><br><br>記録: ${currentIndex} 問`; kb.classList.add('hidden'); bt.textContent = "再挑戦する"; bt.className = "w-full py-4 bg-slate-700 text-white rounded-2xl font-black text-xl"; bt.onclick = resetToTitle; } }
     </script>
 </body>
 </html>
